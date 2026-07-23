@@ -1,0 +1,1975 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>故事智库｜MVP V1</title>
+  <style>
+    :root {
+      --bg: #f5f5f2;
+      --surface: #fff;
+      --surface-2: #f0f1ef;
+      --line: #d7dad8;
+      --line-dark: #bcc2c0;
+      --text: #25292d;
+      --muted: #687077;
+      --red: #b7443c;
+      --red-soft: #f5e5e2;
+      --green: #2f755e;
+      --green-soft: #e2f0e9;
+      --yellow: #d2aa32;
+      --yellow-soft: #f7edcb;
+      --blue: #3d6476;
+      --blue-soft: #e4edf1;
+      --shadow: 0 8px 26px rgba(37, 41, 45, .08);
+      --top: 54px;
+      --tabs: 48px;
+    }
+    * { box-sizing: border-box; }
+    html { color-scheme: light; }
+    body { margin: 0; background: var(--bg); color: var(--text); font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; }
+    button, input, textarea, select { font: inherit; }
+    button { color: inherit; }
+    .icon { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+    .topbar { position: fixed; z-index: 50; inset: 0 0 auto; height: var(--top); display: flex; align-items: center; gap: 18px; padding: 0 18px; background: #fff; border-bottom: 1px solid var(--line); }
+    .brand { display: flex; align-items: center; gap: 9px; min-width: 178px; font-weight: 750; font-size: 16px; }
+    .brand-mark { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 5px; color: #fff; background: var(--red); font-weight: 800; }
+    .project { display: flex; align-items: center; gap: 8px; font-weight: 650; }
+    .top-actions { margin-left: auto; display: flex; align-items: center; gap: 6px; }
+    .module-tabs { position: fixed; z-index: 45; top: var(--top); left: 0; right: 0; height: var(--tabs); display: flex; justify-content: center; background: #e5e8e8; border-bottom: 1px solid var(--line-dark); }
+    .module-tab { min-width: 170px; height: 100%; display: inline-flex; align-items: center; justify-content: center; gap: 9px; border: 0; border-bottom: 3px solid transparent; background: transparent; color: #475057; font-weight: 700; cursor: pointer; }
+    .module-tab:hover { background: rgba(255,255,255,.52); }
+    .module-tab.active { color: var(--red); background: #fff; border-bottom-color: var(--red); }
+    main { padding: calc(var(--top) + var(--tabs) + 22px) 22px 34px; min-height: 100vh; }
+    .page-titlebar { max-width: 1500px; margin: 0 auto 16px; display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; }
+    h1, h2, h3, p { margin-top: 0; }
+    h1 { margin-bottom: 3px; font-size: 23px; letter-spacing: 0; line-height: 1.3; }
+    h2 { margin-bottom: 8px; font-size: 17px; letter-spacing: 0; }
+    h3 { margin-bottom: 5px; font-size: 14px; letter-spacing: 0; }
+    .subtle { color: var(--muted); }
+    .tiny { font-size: 12px; }
+    .workspace { width: min(1500px, 100%); margin: 0 auto; display: grid; grid-template-columns: 264px minmax(520px, 1fr) 340px; gap: 12px; align-items: start; }
+    .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+    .panel-head { min-height: 48px; padding: 11px 13px; display: flex; align-items: center; justify-content: space-between; gap: 10px; border-bottom: 1px solid var(--line); }
+    .panel-body { padding: 13px; }
+    .sticky { position: sticky; top: calc(var(--top) + var(--tabs) + 14px); }
+    .btn { min-height: 34px; display: inline-flex; align-items: center; justify-content: center; gap: 7px; padding: 6px 11px; border: 1px solid var(--line-dark); border-radius: 4px; background: #fff; cursor: pointer; font-weight: 650; white-space: nowrap; }
+    .btn:hover { border-color: #7d8589; background: #fafafa; }
+    .btn:disabled { opacity: .46; cursor: not-allowed; }
+    .btn.primary { color: #fff; border-color: var(--red); background: var(--red); }
+    .btn.primary:hover { background: #a73b34; }
+    .btn.green { color: #fff; border-color: var(--green); background: var(--green); }
+    .btn.danger { color: var(--red); border-color: #d8aaa5; }
+    .btn.icon-only { width: 34px; padding: 0; }
+    .btn.block { width: 100%; }
+    .text-btn { display: inline-flex; align-items: center; gap: 5px; padding: 5px; border: 0; background: transparent; color: var(--muted); cursor: pointer; }
+    .text-btn:hover { color: var(--text); }
+    .pill, .status { display: inline-flex; align-items: center; gap: 4px; max-width: 100%; padding: 2px 8px; border-radius: 999px; background: var(--surface-2); color: #596168; font-size: 12px; white-space: nowrap; }
+    .pill.demo, .status.pending { color: #806213; background: var(--yellow-soft); }
+    .status.confirmed { color: var(--green); background: var(--green-soft); }
+    .status.known { color: #355d69; background: var(--blue-soft); }
+    .status.unknown { color: #6b7073; background: #eceeed; }
+    .status.edited { color: var(--blue); background: var(--blue-soft); }
+    .status.rejected { color: var(--red); background: var(--red-soft); }
+    .status.processing { color: var(--blue); background: var(--blue-soft); }
+    .divider { height: 1px; margin: 12px 0; background: var(--line); }
+    .row { display: flex; align-items: center; gap: 8px; }
+    .row.wrap { flex-wrap: wrap; }
+    .row.between { justify-content: space-between; }
+    .grow { flex: 1; min-width: 0; }
+    .stack { display: grid; gap: 10px; }
+    .empty { padding: 28px 14px; text-align: center; color: var(--muted); border: 1px dashed var(--line-dark); border-radius: 5px; }
+    .content-list, .session-list { display: grid; gap: 7px; margin-top: 11px; }
+    .object-switcher { width: min(1500px,100%); margin: 0 auto 12px; padding: 10px 12px; display: flex; align-items: center; gap: 10px; background: #fff; border: 1px solid var(--line); border-radius: 6px; }
+    .segmented { display: inline-flex; padding: 2px; border: 1px solid var(--line-dark); border-radius: 5px; background: var(--surface-2); }
+    .segment { min-height: 34px; padding: 6px 13px; border: 0; border-radius: 3px; background: transparent; color: var(--muted); cursor: pointer; font-weight: 700; }
+    .segment.active { background: var(--text); color: #fff; }
+    .object-select { min-width: 210px; min-height: 38px; padding: 7px 30px 7px 10px; border: 1px solid var(--line-dark); border-radius: 4px; background: #fff; }
+    .content-object-panel { max-height: calc(100vh - var(--top) - var(--tabs) - 28px); display: flex; flex-direction: column; min-height: 320px; overflow: hidden; }
+    .content-object-panel > .panel-head { flex: none; }
+    .section-directory { flex: none; padding: 10px; border-bottom: 1px solid var(--line); background: #e4e8e4; }
+    .section-directory-head { display: flex; justify-content: space-between; gap: 8px; margin-bottom: 7px; }
+    .section-directory-list { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+    .section-anchor { min-width: 0; padding: 6px 7px; border: 1px solid var(--line); border-radius: 3px; background: var(--surface); color: var(--text); text-align: left; font-size: 11px; cursor: pointer; }
+    .section-anchor:hover { border-color: var(--red); color: var(--red); }
+    .content-object-body { overflow-y: auto; min-height: 0; overscroll-behavior: contain; scrollbar-gutter: stable; }
+    .content-object-toolbar { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 7px; }
+    .series-group { position: relative; border: 1px solid var(--line); border-radius: 5px; overflow: hidden; background: #fff; }
+    .series-group.dragging { opacity: .48; }
+    .series-group.drag-over-before:before, .series-group.drag-over-after:after { content: ""; position: absolute; z-index: 4; left: 4px; right: 4px; height: 3px; border-radius: 2px; background: var(--red); }
+    .series-group.drag-over-before:before { top: 0; }
+    .series-group.drag-over-after:after { bottom: 0; }
+    .series-header { display: flex; align-items: stretch; background: #fff; border-bottom: 1px solid var(--line); }
+    .series-node { min-width: 0; flex: 1; display: flex; align-items: center; gap: 8px; padding: 9px 5px; border: 0; background: #fff; text-align: left; cursor: pointer; }
+    .series-node.active { color: var(--red); background: var(--red-soft); box-shadow: inset 3px 0 var(--red); }
+    .series-node strong { flex: 1; }
+    .series-icon-btn { width: 31px; flex: none; display: grid; place-items: center; padding: 0; border: 0; background: transparent; color: var(--muted); cursor: pointer; }
+    .series-icon-btn:hover { color: var(--red); background: var(--red-soft); }
+    .series-icon-btn:disabled { opacity: .35; cursor: not-allowed; }
+    .series-drag-handle { cursor: grab; touch-action: none; }
+    .series-drag-handle:active { cursor: grabbing; }
+    .series-icon-btn .icon { width: 15px; height: 15px; }
+    .video-children { min-height: 104px; max-height: 440px; padding: 6px; display: grid; align-content: start; gap: 3px; overflow-y: auto; overflow-x: hidden; resize: vertical; scrollbar-gutter: stable; }
+    .series-empty { min-height: 70px; display: grid; place-items: center; padding: 10px; color: var(--muted); font-size: 12px; text-align: center; }
+    .series-manager-list { display: grid; gap: 7px; max-height: 330px; overflow: auto; padding-right: 3px; }
+    .series-manager-row { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 10px; align-items: center; padding: 10px; border: 1px solid var(--line); border-radius: 5px; background: var(--surface-2); }
+    .series-manager-row.is-hidden { opacity: .72; }
+    .series-manager-row .item-meta { flex-wrap: wrap; }
+    .video-node { width: 100%; min-height: 42px; display: grid; grid-template-columns: 38px minmax(0,1fr); gap: 6px; align-items: center; padding: 4px 5px; border: 1px solid transparent; border-radius: 3px; background: var(--surface-2); text-align: left; cursor: pointer; }
+    .video-node.active { border-color: var(--red); background: #fff; }
+    .video-thumb { width: 38px; min-height: 32px; display: grid; place-items: center; padding: 3px 1px; background: #dce3e3; color: #4e595d; font-size: 9px; font-weight: 750; white-space: nowrap; }
+    .video-node .item-title { display: block; overflow: hidden; color: var(--text); font-size: 11px; font-weight: 650; line-height: 1.25; text-overflow: ellipsis; white-space: nowrap; }
+    .video-node .item-meta { font-size: 9px; }
+    .world-notice { margin-bottom: 10px; padding: 10px 11px; border-left: 3px solid var(--yellow); background: var(--yellow-soft); }
+    .world-toolbar { display: flex; flex-wrap: wrap; gap: 6px; }
+    .series-hero { position: relative; min-height: 190px; overflow: hidden; padding: 22px; display: grid; grid-template-columns: 118px 1fr; gap: 18px; align-items: center; background: #dfe4e3; border-bottom: 1px solid var(--line); }
+    .series-poster { height: 150px; display: grid; place-items: end center; padding: 12px; border: 5px solid #fff; background: #b95b54; color: #fff; font-weight: 800; text-align: center; box-shadow: 0 5px 14px rgba(37,41,45,.15); }
+    .series-poster.green { background: #4d7467; }
+    .series-copy h2 { margin-bottom: 6px; font-size: 23px; }
+    .series-copy p { max-width: 680px; margin-bottom: 11px; }
+    .meta-pairs { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 9px; }
+    .meta-pair { padding: 3px 7px; border: 1px solid var(--line); border-radius: 3px; background: #fafafa; color: var(--muted); font-size: 12px; }
+    .meta-pair b { color: var(--text); font-weight: 650; }
+    .analysis-summary { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; margin-bottom: 10px; }
+    .summary-stat { padding: 10px; border-top: 3px solid var(--red); background: var(--surface-2); }
+    .summary-stat.green { border-top-color: var(--green); }
+    .summary-stat.yellow { border-top-color: var(--yellow); }
+    .summary-stat strong { display: block; margin-top: 3px; font-size: 18px; }
+    .mechanism-flow { display: grid; grid-template-columns: 1fr; gap: 8px; margin-bottom: 11px; }
+    .mechanism-step { position: relative; padding: 10px; border: 1px solid var(--line); background: #fff; }
+    .mechanism-step:not(:last-child):after { content: "⌄"; position: absolute; right: 50%; bottom: -15px; z-index: 2; transform: translateX(50%); color: var(--red); font-size: 20px; font-weight: 800; }
+    .content-item, .session-item { width: 100%; display: grid; grid-template-columns: 42px minmax(0,1fr); gap: 9px; padding: 9px; border: 1px solid transparent; border-radius: 5px; background: var(--surface-2); text-align: left; cursor: pointer; }
+    .content-item:hover, .session-item:hover { border-color: var(--line-dark); }
+    .content-item.active, .session-item.active { border-color: var(--red); background: #fff; box-shadow: inset 3px 0 var(--red); }
+    .poster-mini { width: 42px; height: 54px; display: grid; place-items: end center; padding: 4px; overflow: hidden; border: 1px solid #c8cecc; background: #dfe5e5; color: #465158; font-size: 9px; font-weight: 700; }
+    .poster-mini.red { background: #ecd5d2; }
+    .poster-mini.green { background: #dce7dd; }
+    .item-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 700; }
+    .item-meta { margin-top: 3px; display: flex; align-items: center; gap: 5px; color: var(--muted); font-size: 12px; }
+    .preview { position: relative; min-height: 235px; overflow: hidden; background: #d8dedf; border-bottom: 1px solid var(--line); }
+    .scene { position: absolute; inset: 0; overflow: hidden; }
+    .scene-wall { position: absolute; inset: 0 0 34%; background: #cfd7d8; }
+    .scene-table { position: absolute; left: 15%; right: 8%; bottom: 14%; height: 20%; border-top: 8px solid #6a7478; background: #a5aeae; transform: skewX(-7deg); }
+    .scene-screen { position: absolute; top: 14%; right: 13%; width: 30%; height: 37%; border: 8px solid #343b3e; background: #c84c44; }
+    .person { position: absolute; bottom: 20%; width: 82px; height: 125px; border-radius: 42px 42px 9px 9px; background: #8a5551; }
+    .person:before { content: ""; position: absolute; top: -40px; left: 17px; width: 48px; height: 48px; border-radius: 50%; background: #bc8a74; }
+    .person.one { left: 18%; }
+    .person.two { left: 45%; height: 116px; background: #56666d; }
+    .person.two:before { background: #9a7c6f; }
+    .caption { position: absolute; left: 14%; right: 14%; bottom: 14px; padding: 7px 12px; color: #fff; background: rgba(37,41,45,.88); text-align: center; font-weight: 650; }
+    .play { position: absolute; inset: 0; display: grid; place-items: center; }
+    .play button { width: 48px; height: 48px; border: 1px solid rgba(255,255,255,.8); border-radius: 50%; background: rgba(37,41,45,.75); color: #fff; cursor: pointer; }
+    .preview-info { position: absolute; left: 12px; top: 12px; display: flex; gap: 6px; }
+    .pipeline { display: grid; grid-template-columns: repeat(4,1fr); padding: 10px 13px; background: #fafafa; border-bottom: 1px solid var(--line); }
+    .pipe-step { position: relative; padding: 0 8px 0 22px; color: var(--muted); font-size: 12px; }
+    .pipe-step:before { content: ""; position: absolute; left: 2px; top: 3px; width: 11px; height: 11px; border: 2px solid var(--line-dark); border-radius: 50%; background: #fff; }
+    .pipe-step:not(:last-child):after { content: ""; position: absolute; left: 14px; right: -2px; top: 9px; height: 1px; background: var(--line-dark); }
+    .pipe-step.done { color: var(--green); font-weight: 650; }
+    .pipe-step.done:before { border-color: var(--green); background: var(--green); }
+    .analysis-tabs { display: flex; gap: 2px; padding: 8px 10px 0; overflow-x: auto; border-bottom: 1px solid var(--line); }
+    .analysis-tab { min-height: 38px; padding: 7px 10px; border: 0; border-bottom: 3px solid transparent; background: transparent; color: var(--muted); cursor: pointer; white-space: nowrap; font-weight: 650; }
+    .analysis-tab.active { color: var(--red); border-bottom-color: var(--red); }
+    .analysis-area { padding: 13px; }
+    .all-metadata { display: grid; gap: 14px; background: #f7f7f4; }
+    .metadata-section { border: 1px solid var(--line); border-radius: 5px; overflow: hidden; background: #fff; }
+    .metadata-section summary { list-style: none; cursor: pointer; }
+    .metadata-section summary::-webkit-details-marker { display: none; }
+    .metadata-section-head { min-height: 52px; display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-left: 4px solid var(--red); background: var(--surface-2); }
+    .metadata-section-head:after { content: "收起"; margin-left: auto; color: var(--muted); font-size: 12px; }
+    .metadata-section:not([open]) .metadata-section-head:after { content: "展开"; }
+    .section-index { width: 28px; height: 28px; display: grid; place-items: center; border-radius: 50%; background: var(--text); color: #fff; font-weight: 750; }
+    .section-title { min-width: 120px; font-size: 16px; font-weight: 750; }
+    .section-stats { display: flex; flex-wrap: wrap; gap: 5px; }
+    .metadata-table { overflow-x: auto; }
+    .metadata-table-head, .metadata-row { min-width: 765px; display: grid; grid-template-columns: 132px minmax(230px,1fr) 112px minmax(145px,.72fr) 132px; gap: 0; align-items: stretch; }
+    .metadata-table-head { min-height: 34px; align-items: center; color: var(--muted); background: #fafafa; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); font-size: 12px; font-weight: 650; }
+    .metadata-table-head > div, .metadata-cell { padding: 8px 9px; border-right: 1px solid #e7e9e8; }
+    .metadata-table-head > div:last-child, .metadata-cell:last-child { border-right: 0; }
+    .metadata-row { min-height: 72px; border-bottom: 1px solid var(--line); cursor: pointer; }
+    .metadata-row:last-child { border-bottom: 0; }
+    .metadata-row:hover { background: #fafafa; }
+    .metadata-row.active { background: #fff8f7; box-shadow: inset 3px 0 var(--red); }
+    .field-name { font-weight: 750; }
+    .field-value { color: #41494f; }
+    .field-evidence { color: var(--muted); font-size: 12px; }
+    .field-evidence strong { display: block; color: var(--text); }
+    .field-state { display: grid; align-content: start; justify-items: start; gap: 5px; }
+    .field-actions { display: flex; align-items: flex-start; gap: 4px; }
+    .field-actions button { width: 29px; height: 29px; display: grid; place-items: center; padding: 0; border: 1px solid var(--line); border-radius: 4px; background: #fff; cursor: pointer; }
+    .field-actions button:hover { color: var(--red); border-color: var(--red); }
+    .field-actions .icon { width: 15px; height: 15px; }
+    .section-review-btn { display: inline-flex; align-items: center; gap: 4px; margin-left: 3px; min-height: 30px; padding: 4px 8px; border: 1px solid #a9cbbd; border-radius: 4px; background: #fff; color: var(--green); cursor: pointer; font-weight: 700; }
+    .section-review-btn .icon { width: 14px; height: 14px; }
+    .section-review-btn:hover { background: var(--green-soft); }
+    .section-review-btn:disabled { opacity: .45; cursor: not-allowed; }
+    .character-zone, .audience-zone, .knowledge-zone { padding: 12px; border-top: 1px solid var(--line); }
+    .zone-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 9px; }
+    .character-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; }
+    .character-card { padding: 11px; border: 1px solid var(--line); border-radius: 5px; background: #fff; }
+    .character-card.active { border-color: var(--red); box-shadow: inset 3px 0 var(--red); }
+    .character-name { font-size: 16px; font-weight: 760; }
+    .character-fields { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 7px; margin-top: 10px; }
+    .character-field { padding: 7px; background: var(--surface-2); }
+    .character-field span { display: block; margin-bottom: 2px; color: var(--muted); font-size: 11px; }
+    .card-actions { display: flex; gap: 4px; }
+    .card-actions button { width: 29px; height: 29px; display: grid; place-items: center; padding: 0; border: 1px solid var(--line); border-radius: 4px; background: #fff; cursor: pointer; }
+    .card-actions button:hover { color: var(--red); border-color: var(--red); }
+    .card-actions .icon { width: 15px; height: 15px; }
+    .relationship-panel { margin-top: 10px; padding: 10px; border: 1px solid var(--line); border-radius: 5px; background: #f7f8f7; }
+    .relationship-panel.active, .platform-card.active, .knowledge-card.active, .knowledge-asset.active { border-color: var(--red); box-shadow: inset 3px 0 var(--red); }
+    .relationship-graph { width: 100%; height: 230px; display: block; }
+    .relationship-graph line { stroke: #9aa3a2; stroke-width: 2; }
+    .relationship-graph .edge-label { fill: #5d666b; font-size: 11px; }
+    .relationship-graph circle { fill: #fff; stroke: var(--red); stroke-width: 3; }
+    .relationship-graph .ally { stroke: var(--green); }
+    .relationship-graph text.node-label { fill: var(--text); font-size: 13px; font-weight: 750; text-anchor: middle; }
+    .world-fields { margin-top: 10px; }
+    .platform-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 8px; }
+    .platform-card { padding: 11px; border: 1px solid var(--line); border-top: 3px solid var(--red); border-radius: 5px; background: #fff; }
+    .platform-card:nth-child(2) { border-top-color: var(--text); }
+    .platform-card:nth-child(3) { border-top-color: var(--green); }
+    .platform-metrics { display: grid; grid-template-columns: repeat(3,1fr); gap: 5px; margin: 9px 0; }
+    .platform-metric { padding: 6px; background: var(--surface-2); text-align: center; }
+    .platform-metric strong { display: block; font-size: 16px; }
+    .emotion-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
+    .knowledge-flow { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; }
+    .knowledge-card { position: relative; min-height: 150px; padding: 12px; border: 1px solid var(--line); border-top: 4px solid var(--red); border-radius: 5px; background: #fff; }
+    .knowledge-card:nth-child(2) { border-top-color: var(--yellow); }
+    .knowledge-card:nth-child(3) { border-top-color: var(--green); }
+    .knowledge-card:not(:last-child):after { content: "›"; position: absolute; z-index: 2; right: -8px; top: 45%; color: var(--red); font-size: 22px; font-weight: 800; }
+    .knowledge-assets { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; margin-top: 10px; }
+    .knowledge-asset { padding: 10px; border: 1px solid var(--line); border-radius: 5px; background: #fff; }
+    .dashboard-body { display: grid; gap: 12px; }
+    .curve-card { padding: 10px; border: 1px solid var(--line); background: #fff; cursor: pointer; }
+    .curve-card:hover { border-color: var(--red); }
+    .emotion-curve { width: 100%; height: 180px; display: block; }
+    .curve-grid { stroke: #e1e4e2; stroke-width: 1; }
+    .curve-line { fill: none; stroke: var(--red); stroke-width: 3; }
+    .curve-point { fill: #fff; stroke: var(--red); stroke-width: 2; }
+    .curve-label { fill: var(--muted); font-size: 10px; }
+    .audit-metrics { display: grid; grid-template-columns: repeat(3,1fr); gap: 6px; }
+    .audit-metric { padding: 9px 6px; border: 1px solid var(--line); border-top: 3px solid var(--red); background: #fff; color: var(--text); font: inherit; text-align: center; cursor: pointer; }
+    .audit-metric:nth-child(2) { border-top-color: var(--yellow); }
+    .audit-metric:nth-child(3) { border-top-color: var(--green); }
+    .audit-metric strong { display: block; font-size: 20px; }
+    .module-progress-list { display: grid; gap: 6px; }
+    .module-progress { width: 100%; padding: 8px; border: 1px solid var(--line); border-radius: 4px; background: #fff; text-align: left; cursor: pointer; }
+    .module-progress:hover { border-color: var(--red); }
+    .module-progress .signal-bar { margin-top: 6px; }
+    .metadata-section { scroll-margin-top: calc(var(--top) + var(--tabs) + 12px); }
+    .faction-list { display: grid; gap: 8px; margin-top: 10px; }
+    .faction-strip { display: grid; grid-template-columns: minmax(150px,.55fr) minmax(0,1.8fr) auto; gap: 12px; align-items: center; padding: 11px; border: 1px solid var(--line); border-left: 3px solid var(--yellow); border-radius: 5px; background: var(--surface); }
+    .faction-strip.active { border-color: var(--red); border-left-color: var(--red); }
+    .faction-title { font-size: 15px; font-weight: 760; }
+    .faction-fields { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 7px; }
+    .faction-field { min-height: 54px; padding: 7px; background: var(--surface-2); }
+    .faction-field span { display: block; margin-bottom: 2px; color: var(--muted); font-size: 11px; }
+    .knowledge-list { display: grid; gap: 7px; }
+    .knowledge-strip { display: grid; grid-template-columns: 76px minmax(170px,.62fr) minmax(240px,1.3fr) minmax(160px,.65fr) auto; gap: 10px; align-items: center; padding: 10px; border: 1px solid var(--line); border-left: 3px solid var(--red); border-radius: 5px; background: var(--surface); }
+    .knowledge-strip:nth-child(3n+2) { border-left-color: var(--yellow); }
+    .knowledge-strip:nth-child(3n) { border-left-color: var(--green); }
+    .knowledge-strip.active { border-color: var(--red); }
+    .knowledge-kind { color: var(--muted); font-size: 12px; font-weight: 750; }
+    .knowledge-copy p { margin: 3px 0 0; color: var(--muted); }
+    .knowledge-evidence { color: var(--muted); font-size: 12px; }
+    .knowledge-evidence strong { display: block; color: var(--text); }
+    .storyboard-wrap { margin-top: 12px; border-top: 1px solid var(--line); }
+    .storyboard-head { padding: 11px 12px; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .storyboard-scroll { overflow-x: auto; }
+    .storyboard-table { width: 100%; min-width: 1060px; border-collapse: collapse; }
+    .storyboard-table th, .storyboard-table td { padding: 8px 9px; border-top: 1px solid var(--line); border-right: 1px solid var(--line); text-align: left; vertical-align: top; }
+    .storyboard-table th:last-child, .storyboard-table td:last-child { border-right: 0; }
+    .storyboard-table th { color: var(--muted); background: var(--surface-2); font-size: 12px; }
+    .storyboard-table td:first-child { color: var(--yellow); font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .curve-node { outline: 0; }
+    .curve-node .curve-tooltip { opacity: 0; transition: opacity .12s ease; pointer-events: none; }
+    .curve-node:hover .curve-tooltip, .curve-node:focus .curve-tooltip { opacity: 1; }
+    .curve-tooltip-box { padding: 5px 7px; border: 1px solid var(--line-dark); border-radius: 4px; background: #252b31; color: #eef1f2; font-size: 10px; line-height: 1.35; box-shadow: var(--shadow); }
+    .inspiration-clouds { width: min(1500px,100%); margin: 12px auto 0; display: grid; grid-template-columns: 1.45fr 1fr 1fr; gap: 12px; }
+    .cloud-panel { min-height: 190px; padding: 13px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); }
+    .cloud { min-height: 130px; display: flex; align-content: center; align-items: center; justify-content: center; flex-wrap: wrap; gap: 8px 10px; padding-top: 10px; }
+    .cloud-word { max-width: 100%; padding: 4px 7px; border: 0; background: transparent; color: var(--muted); cursor: pointer; line-height: 1.25; text-align: left; }
+    .cloud-word:hover { color: var(--text); background: var(--surface-2); }
+    .cloud-word.hot { color: var(--red); font-size: 18px; font-weight: 760; }
+    .cloud-word.warm { color: var(--yellow); font-size: 15px; font-weight: 700; }
+    .cloud-word.calm { color: var(--green); font-size: 14px; }
+
+    /* Obsidian workbench theme */
+    :root { --bg:#0d1013; --surface:#171b20; --surface-2:#20262c; --line:#303840; --line-dark:#46515a; --text:#eef1f2; --muted:#9aa5ad; --red:#c75c52; --red-soft:#3a2323; --green:#58a386; --green-soft:#18362c; --yellow:#d2ab49; --yellow-soft:#3a321d; --blue:#71a0b5; --blue-soft:#1d3440; --shadow:0 10px 30px rgba(0,0,0,.32); }
+    html { color-scheme: dark; }
+    body { background: var(--bg); color: var(--text); }
+    .topbar, .panel, .object-switcher, .series-group, .series-node, .btn, .ref-item, .bubble, .quick-prompts, .composer, .modal, .modal-head, .modal-foot, .toast, .character-card, .platform-card, .knowledge-card, .knowledge-asset, .curve-card, .audit-metric, .module-progress, .relationship-panel, .metadata-section, .mechanism-step, .field-actions button, .card-actions button, .section-review-btn, .metric, .analysis-card, .timeline-content { background: var(--surface); }
+    .module-tabs { background: #11161a; border-bottom-color: var(--line); }
+    .module-tab { color: #aab3b9; }
+    .module-tab:hover { background: #1c2227; }
+    .module-tab.active { color: #f1d0cd; background: var(--surface); border-bottom-color: var(--red); }
+    .btn:hover, .series-node:hover { background: #22282e; border-color: #69747c; }
+    .btn.primary { color: #fff; }
+    .text-btn:hover { color: var(--text); }
+    .segment.active { background: #e5e8e9; color: #15191d; }
+    .object-select, .field input, .field textarea, .field select, .composer textarea { background: #12161a; color: var(--text); }
+    .series-hero { background: #20272c; }
+    .pipeline, .all-metadata { background: #111519; }
+    .meta-pair, .metadata-table-head, .metadata-section-head, .platform-metric, .character-field, .faction-field, .summary-stat, .confidence-block { background: var(--surface-2); }
+    .metadata-row:hover, .cloud-word:hover { background: #20262c; }
+    .metadata-row.active { background: #2b1d1e; }
+    .series-node.active, .video-node.active, .content-item.active, .session-item.active, .timeline-item.active .timeline-content { background: #2a1f20; }
+    .video-node, .content-item, .session-item, .discussion-entry { background: var(--surface-2); }
+    .chat-log { background: #111519; }
+    .message.user .bubble { background: #332326; border-color: #62413f; }
+    .chip { background: #171b20; color: #b5bec4; }
+    .evidence { background: #15241e; }
+    .dropzone { background: #12161a; }
+    .signal-bar { background: #2b3238; }
+    .risk { color: #e2c56f; }
+    .scene-wall { background: #252d32; }
+    .scene-table { background: #59636a; }
+    .preview { background: #20272c; }
+    .curve-grid { stroke: #303840; }
+    .curve-label { fill: #9aa5ad; }
+    .relationship-graph .edge-label { fill: #aab3b9; }
+    .relationship-graph circle { fill: #171b20; }
+    .relationship-graph text.node-label { fill: #eef1f2; }
+    .pipe-step:before, .timeline-line:after, .curve-point { background: var(--surface); fill: var(--surface); }
+    .series-poster { border-color: #d9ddde; }
+    .modal-backdrop { background: rgba(0,0,0,.72); }
+    .character-grid { grid-template-columns: 1fr; }
+    .character-card { display: grid; grid-template-columns: minmax(210px,.62fr) minmax(0,1.8fr); gap: 12px; align-items: start; }
+    .character-fields { grid-template-columns: repeat(3,minmax(0,1fr)); margin-top: 0; }
+    .overview-lead { padding: 14px; border-left: 4px solid var(--red); background: var(--red-soft); }
+    .metric-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; margin-top: 10px; }
+    .metric { padding: 10px; border: 1px solid var(--line); border-radius: 5px; background: #fff; }
+    .metric strong { display: block; margin-top: 3px; font-size: 16px; }
+    .analysis-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 9px; }
+    .analysis-card { position: relative; min-height: 118px; padding: 12px; border: 1px solid var(--line); border-radius: 5px; background: #fff; cursor: pointer; }
+    .analysis-card:hover { border-color: var(--line-dark); }
+    .analysis-card.active { border-color: var(--red); box-shadow: inset 3px 0 var(--red); }
+    .analysis-card p { margin: 8px 0 0; color: #4f585e; }
+    .analysis-card .confidence { position: absolute; right: 10px; top: 10px; font-size: 12px; color: var(--muted); }
+    .timeline { display: grid; gap: 4px; }
+    .timeline-item { display: grid; grid-template-columns: 64px 12px minmax(0,1fr); gap: 8px; align-items: stretch; cursor: pointer; }
+    .timecode { padding-top: 10px; text-align: right; color: var(--muted); font-variant-numeric: tabular-nums; }
+    .timeline-line { position: relative; }
+    .timeline-line:before { content: ""; position: absolute; top: 18px; bottom: -10px; left: 5px; width: 2px; background: var(--line); }
+    .timeline-item:last-child .timeline-line:before { bottom: 50%; }
+    .timeline-line:after { content: ""; position: absolute; top: 15px; left: 1px; width: 8px; height: 8px; border: 2px solid var(--red); border-radius: 50%; background: #fff; }
+    .timeline-content { padding: 8px 10px; border: 1px solid var(--line); border-radius: 5px; background: #fff; }
+    .timeline-item.active .timeline-content { border-color: var(--red); background: #fffafa; }
+    .signal-bar { height: 6px; overflow: hidden; border-radius: 5px; background: #e9eceb; }
+    .signal-bar span { display: block; height: 100%; background: var(--red); }
+    .review-empty { min-height: 410px; display: grid; place-items: center; padding: 28px; color: var(--muted); text-align: center; }
+    .review-body { display: grid; gap: 12px; }
+    .review-title { font-size: 18px; line-height: 1.4; }
+    .confidence-block { padding: 10px; background: var(--surface-2); }
+    .evidence { padding: 10px; border-left: 3px solid var(--green); background: #f3f6f4; }
+    .detail-list { display: grid; gap: 8px; }
+    .detail-row { display: grid; grid-template-columns: 66px 1fr; gap: 8px; }
+    .detail-row dt { color: var(--muted); }
+    .detail-row dd { margin: 0; }
+    .review-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
+    .review-actions .wide { grid-column: 1/-1; }
+    .knowledge-callout { padding: 10px; border: 1px solid #bad7ca; background: var(--green-soft); color: #285c4b; }
+    .session-item { grid-template-columns: minmax(0,1fr) auto; padding: 10px; }
+    .session-status-dot { width: 8px; height: 8px; margin-top: 6px; border-radius: 50%; background: var(--yellow); }
+    .session-status-dot.converging { background: var(--red); }
+    .session-status-dot.confirmed { background: var(--green); }
+    .session-actions { display: flex; flex-direction: column; gap: 2px; }
+    .session-actions button { width: 27px; height: 27px; padding: 0; border: 0; background: transparent; color: var(--muted); cursor: pointer; }
+    .session-actions button:hover { color: var(--text); }
+    .ref-list { display: grid; gap: 6px; }
+    .ref-item { padding: 8px; border: 1px solid var(--line); background: #fff; font-size: 12px; }
+    .chat-panel { min-height: 670px; display: flex; flex-direction: column; }
+    .chat-head { padding: 12px 14px; border-bottom: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .chat-log { flex: 1; min-height: 410px; max-height: calc(100vh - 365px); overflow: auto; padding: 16px; display: flex; flex-direction: column; gap: 14px; background: #fafaf8; }
+    .message { max-width: 88%; display: grid; grid-template-columns: 28px minmax(0,1fr); gap: 8px; align-items: start; }
+    .message.user { align-self: flex-end; grid-template-columns: minmax(0,1fr) 28px; }
+    .avatar { width: 28px; height: 28px; display: grid; place-items: center; border-radius: 50%; background: var(--text); color: #fff; font-size: 11px; font-weight: 750; }
+    .message.user .avatar { grid-column: 2; background: var(--red); }
+    .bubble { padding: 10px 12px; border: 1px solid var(--line); border-radius: 6px; background: #fff; white-space: pre-wrap; }
+    .message.user .bubble { grid-row: 1; background: var(--red-soft); border-color: #dfbbb7; }
+    .message .citation { margin-top: 7px; padding-top: 7px; border-top: 1px solid var(--line); color: var(--green); font-size: 12px; }
+    .typing { display: inline-flex; gap: 4px; padding: 8px 10px; }
+    .typing i { width: 5px; height: 5px; border-radius: 50%; background: var(--muted); animation: blink 1s infinite alternate; }
+    .typing i:nth-child(2) { animation-delay: .2s; } .typing i:nth-child(3) { animation-delay: .4s; }
+    @keyframes blink { to { opacity: .25; } }
+    .quick-prompts { display: flex; gap: 6px; padding: 9px 12px 0; overflow-x: auto; background: #fff; }
+    .chip { padding: 6px 9px; border: 1px solid var(--line); border-radius: 999px; background: #fff; color: #505960; cursor: pointer; white-space: nowrap; font-size: 12px; }
+    .chip:hover { border-color: var(--red); color: var(--red); }
+    .composer { padding: 11px 12px 12px; background: #fff; }
+    .composer-box { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: end; padding: 8px; border: 1px solid var(--line-dark); border-radius: 6px; }
+    .composer textarea { min-height: 48px; max-height: 110px; resize: vertical; padding: 4px; border: 0; outline: 0; }
+    .profile { display: grid; gap: 10px; }
+    .profile-block { padding-bottom: 9px; border-bottom: 1px solid var(--line); }
+    .profile-block:last-child { border-bottom: 0; }
+    .profile-label { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; color: var(--muted); font-size: 12px; }
+    .profile-value { font-weight: 650; }
+    .hook-list { margin: 0; padding-left: 18px; }
+    .risk { padding: 8px; background: var(--yellow-soft); color: #6e5718; }
+    .progress-line { display: flex; align-items: center; gap: 5px; }
+    .progress-line span { height: 5px; flex: 1; background: var(--line); }
+    .progress-line span.on { background: var(--red); }
+    .archived { opacity: .72; }
+    .modal-backdrop { position: fixed; z-index: 100; inset: 0; display: grid; place-items: center; padding: 18px; background: rgba(37,41,45,.45); }
+    .modal { width: min(620px,100%); max-height: min(760px,92vh); overflow: auto; background: #fff; border: 1px solid var(--line-dark); border-radius: 7px; box-shadow: var(--shadow); }
+    .modal-head { position: sticky; top: 0; z-index: 1; min-height: 52px; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 14px; background: #fff; border-bottom: 1px solid var(--line); }
+    .modal-body { padding: 15px; }
+    .modal-foot { position: sticky; bottom: 0; display: flex; justify-content: flex-end; gap: 8px; padding: 11px 14px; background: #fff; border-top: 1px solid var(--line); }
+    .field { display: grid; gap: 5px; }
+    .field label { color: #515960; font-size: 12px; font-weight: 650; }
+    .field input, .field textarea, .field select { width: 100%; min-height: 38px; padding: 8px 9px; border: 1px solid var(--line-dark); border-radius: 4px; background: #fff; outline: 0; }
+    .field textarea { min-height: 92px; resize: vertical; }
+    .field input:focus, .field textarea:focus, .field select:focus { border-color: var(--red); box-shadow: 0 0 0 2px rgba(183,68,60,.1); }
+    .dropzone { display: grid; place-items: center; min-height: 116px; padding: 18px; border: 1px dashed #9ea6a5; background: #fafafa; text-align: center; cursor: pointer; }
+    .dropzone:hover { border-color: var(--red); }
+    .file-name { margin-top: 5px; color: var(--green); font-size: 12px; }
+    .discussion { display: grid; gap: 8px; max-height: 330px; overflow: auto; margin-bottom: 12px; }
+    .discussion-entry { padding: 9px; border-left: 3px solid var(--line-dark); background: var(--surface-2); }
+    .discussion-entry.ai { border-left-color: var(--green); }
+    .toast-wrap { position: fixed; z-index: 150; right: 18px; bottom: 18px; display: grid; gap: 8px; }
+    .toast { min-width: 250px; max-width: 380px; padding: 11px 13px; border: 1px solid var(--line-dark); border-left: 4px solid var(--green); border-radius: 5px; background: #fff; box-shadow: var(--shadow); }
+    .toast.error { border-left-color: var(--red); }
+    .hidden { display: none !important; }
+    @media (max-width: 1360px) {
+      .workspace { grid-template-columns: 230px minmax(480px,1fr); }
+      .workspace > .right-column { grid-column: 1/-1; position: static; }
+      .review-body, .profile { grid-template-columns: repeat(2,minmax(0,1fr)); }
+      .review-actions, .profile .full { grid-column: 1/-1; }
+      .inspiration-clouds { grid-template-columns: 1fr 1fr; }
+      .inspiration-clouds .cloud-panel:first-child { grid-column: 1/-1; }
+      .knowledge-strip { grid-template-columns: 70px minmax(150px,.65fr) minmax(220px,1.3fr) auto; }
+      .knowledge-evidence { display: none; }
+    }
+    @media (max-width: 760px) {
+      :root { --top: 50px; --tabs: 46px; }
+      .topbar { padding: 0 10px; gap: 8px; }
+      .brand { min-width: auto; font-size: 14px; }
+      .project { display: none; }
+      .top-actions .label { display: none; }
+      .module-tabs { justify-content: stretch; }
+      .module-tab { min-width: 0; flex: 1; }
+      main { padding: calc(var(--top) + var(--tabs) + 14px) 10px 24px; }
+      .page-titlebar { align-items: center; }
+      h1 { font-size: 20px; }
+      .workspace { grid-template-columns: 1fr; }
+      .sticky { position: static; }
+      .content-object-panel { max-height: min(620px,calc(100vh - var(--top) - var(--tabs) - 24px)); }
+      .metric-grid { grid-template-columns: repeat(2,1fr); }
+      .analysis-grid { grid-template-columns: 1fr; }
+      .object-switcher { align-items: stretch; flex-direction: column; }
+      .segmented, .object-select { width: 100%; }
+      .segment { flex: 1; }
+      .series-hero { grid-template-columns: 82px 1fr; padding: 14px; }
+      .series-poster { height: 112px; padding: 7px; }
+      .series-copy h2 { font-size: 19px; }
+      .analysis-summary { grid-template-columns: repeat(2,1fr); }
+      .metadata-section-head { align-items: flex-start; flex-wrap: wrap; }
+      .section-title { min-width: 0; flex: 1; }
+      .section-stats { width: 100%; padding-left: 38px; }
+      .metadata-table-head { display: none; }
+      .metadata-row { min-width: 0; grid-template-columns: 1fr; padding: 9px; }
+      .metadata-cell { padding: 5px 6px; border-right: 0; }
+      .metadata-cell.field-value { padding-top: 1px; }
+      .field-state { display: flex; align-items: center; }
+      .field-actions { padding-top: 7px; }
+      .character-grid, .platform-grid, .knowledge-flow, .knowledge-assets, .inspiration-clouds { grid-template-columns: 1fr; }
+      .inspiration-clouds .cloud-panel:first-child { grid-column: auto; }
+      .character-card, .faction-strip, .knowledge-strip { grid-template-columns: 1fr; }
+      .character-fields { grid-template-columns: 1fr; }
+      .faction-fields { grid-template-columns: 1fr; }
+      .knowledge-kind { color: var(--yellow); }
+      .modal-body .row { align-items: stretch; flex-direction: column; }
+      .knowledge-card:not(:last-child):after { content: "⌄"; right: 50%; top: auto; bottom: -16px; transform: translateX(50%); }
+      .pipeline { grid-template-columns: repeat(2,1fr); gap: 8px 0; }
+      .preview { min-height: 210px; }
+      .review-body, .profile { grid-template-columns: 1fr; }
+      .chat-panel { min-height: 600px; }
+      .chat-log { max-height: 430px; }
+      .message { max-width: 96%; }
+    }
+
+    /* Final dark-theme corrections: these must follow the light component defaults above. */
+    .chat-panel, .chat-head, .chat-log, .quick-prompts, .composer, .composer-box,
+    .ref-list, .ref-item { color: var(--text); }
+    .chat-head { background: var(--surface); border-color: var(--line); }
+    .chat-log { background: #101418; }
+    .bubble { background: #1b2126; border-color: #39434a; color: #dce3e7; }
+    .message.user .bubble { background: #3a2526; border-color: #704441; color: #f3e9e8; }
+    .message .citation { border-color: #39434a; color: #6fb99c; }
+    .quick-prompts { background: #171c20; border-top: 1px solid var(--line); }
+    .chip { background: #13181c; border-color: #3b464e; color: #bcc5ca; }
+    .chip:hover { background: #20262b; border-color: var(--red); color: #f0d3d0; }
+    .composer { background: #171c20; }
+    .composer-box { background: #101418; border-color: #4b5760; }
+    .composer textarea { background: transparent; color: #eef2f4; }
+    .composer textarea::placeholder { color: #77838b; }
+    .ref-list { background: transparent; }
+    .ref-item { background: #11161a; border-color: #364149; color: #d5dde1; }
+    .metadata-cell.field-value { color: #c7d0d5; }
+    .metadata-row.active .metadata-cell.field-value { color: #f0f3f4; }
+    .api-state { display: inline-flex; align-items: center; gap: 7px; }
+    .api-dot { width: 7px; height: 7px; border-radius: 50%; background: #d8b33f; box-shadow: 0 0 0 3px rgba(216,179,63,.12); }
+    .api-state.connected .api-dot { background: #4da884; box-shadow: 0 0 0 3px rgba(77,168,132,.14); }
+    .api-state.error .api-dot { background: #cf6259; box-shadow: 0 0 0 3px rgba(207,98,89,.14); }
+    .job-state { display: grid; place-items: center; min-height: 430px; padding: 36px; text-align: center; }
+    .job-state-inner { width: min(520px,100%); }
+    .job-state .job-symbol { display: grid; place-items: center; width: 48px; height: 48px; margin: 0 auto 16px; border: 1px solid var(--line-dark); background: var(--surface-2); color: var(--red); }
+    .job-progress { height: 8px; margin: 18px 0 9px; overflow: hidden; background: var(--line); border-radius: 2px; }
+    .job-progress span { display: block; height: 100%; background: var(--red); transition: width .3s ease; }
+    .job-error { margin: 16px 0; padding: 12px; border: 1px solid #783c39; background: rgba(183,68,60,.12); color: #f0b2ad; text-align: left; }
+    .status.failed { background: rgba(183,68,60,.18); color: #f0aaa4; }
+    .config-summary { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; }
+    .config-summary > div { padding: 10px; border: 1px solid var(--line); background: var(--surface-2); }
+    .config-summary span { display: block; margin-bottom: 4px; color: var(--muted); font-size: 11px; }
+    .file-note { padding: 10px 12px; border-left: 2px solid var(--yellow); background: rgba(216,179,63,.08); color: var(--muted); }
+    @media (max-width: 720px) { .config-summary { grid-template-columns: 1fr; } }
+
+    /* Soft daylight workbench theme */
+    :root {
+      --bg: #e9ece8;
+      --surface: #f6f4ef;
+      --surface-2: #e6eae6;
+      --line: #cfd5d0;
+      --line-dark: #aeb8b1;
+      --text: #29312f;
+      --muted: #68736f;
+      --red: #b65349;
+      --red-soft: #f1dfda;
+      --green: #39755f;
+      --green-soft: #dcebe3;
+      --yellow: #aa8425;
+      --yellow-soft: #eee5c8;
+      --blue: #486b78;
+      --blue-soft: #dde8eb;
+      --shadow: 0 10px 28px rgba(45, 55, 50, .12);
+    }
+    html { color-scheme: light; }
+    body { background: var(--bg); color: var(--text); }
+    .topbar, .panel, .object-switcher, .series-group, .series-node, .btn, .ref-item,
+    .bubble, .quick-prompts, .composer, .modal, .modal-head, .modal-foot, .toast,
+    .character-card, .platform-card, .knowledge-card, .knowledge-asset, .curve-card,
+    .audit-metric, .module-progress, .relationship-panel, .metadata-section,
+    .mechanism-step, .field-actions button, .card-actions button, .section-review-btn,
+    .metric, .analysis-card, .timeline-content, .chat-head { background: var(--surface); }
+    .module-tabs { background: #dfe4e1; border-bottom-color: var(--line-dark); }
+    .module-tab { color: #56615d; }
+    .module-tab:hover { background: #e9ece8; }
+    .module-tab.active { color: var(--red); background: var(--surface); border-bottom-color: var(--red); }
+    .btn:hover, .series-node:hover { background: #ebece8; border-color: #7f8a84; }
+    .btn.primary, .btn.green { color: #f8f6f1; }
+    .segment.active { background: #38423f; color: #f7f5f0; }
+    .object-select, .field input, .field textarea, .field select, .composer textarea {
+      background: #f1f0eb; color: var(--text);
+    }
+    .series-hero, .preview { background: #d8dfda; }
+    .pipeline, .all-metadata, .chat-log { background: #edf0ec; }
+    .meta-pair, .metadata-table-head, .metadata-section-head, .platform-metric,
+    .character-field, .faction-field, .summary-stat, .confidence-block { background: var(--surface-2); }
+    .metadata-row:hover, .cloud-word:hover { background: #eceeea; }
+    .metadata-row.active { background: #f3e7e3; }
+    .series-node.active, .video-node.active, .content-item.active, .session-item.active,
+    .timeline-item.active .timeline-content { background: #f1e3df; }
+    .video-node, .content-item, .session-item, .discussion-entry { background: var(--surface-2); }
+    .bubble { background: #f5f3ee; border-color: var(--line-dark); color: var(--text); }
+    .message.user .bubble { background: #ead8d3; border-color: #d3aaa3; color: #392d2b; }
+    .message .citation { border-color: var(--line); color: var(--green); }
+    .quick-prompts { background: #e7ebe7; border-top-color: var(--line); }
+    .chip { background: #f1f0eb; border-color: var(--line-dark); color: #4e5a56; }
+    .chip:hover { background: #e8e4df; border-color: var(--red); color: var(--red); }
+    .composer { background: #e7ebe7; }
+    .composer-box { background: #f1f0eb; border-color: var(--line-dark); }
+    .composer textarea { background: transparent; color: var(--text); }
+    .composer textarea::placeholder { color: #7b8580; }
+    .ref-list { background: transparent; }
+    .ref-item { border-color: var(--line); color: var(--text); }
+    .metadata-cell.field-value { color: #3f4d48; }
+    .metadata-row.active .metadata-cell.field-value { color: #28332f; }
+    .dropzone { background: #eeefea; }
+    .evidence { background: #e5ece7; color: #34483f; }
+    .scene-wall { background: #cbd5d1; }
+    .scene-table { background: #87938f; }
+    .curve-grid { stroke: #cfd5d0; }
+    .curve-label { fill: #68736f; }
+    .relationship-graph .edge-label { fill: #5b6964; }
+    .relationship-graph circle { fill: var(--surface); }
+    .relationship-graph text.node-label { fill: var(--text); }
+    .pipe-step:before, .timeline-line:after, .curve-point { background: var(--surface); fill: var(--surface); }
+    .modal-backdrop { background: rgba(40, 47, 44, .42); }
+    .job-error { border-color: #d3aaa3; background: var(--red-soft); color: #8e3f38; }
+    .status.failed { background: var(--red-soft); color: #91443d; }
+    .curve-tooltip-box { background: #36403c; color: #f4f3ef; }
+    .video-overview { padding: 13px; border-bottom: 1px solid var(--line); background: #ecefea; }
+    .video-overview-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+    .video-overview-grid { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 7px; }
+    .video-overview-item { min-height: 62px; padding: 8px 9px; border: 1px solid var(--line); background: var(--surface); }
+    .video-overview-item.wide { grid-column: span 2; }
+    .video-overview-item span { display: block; margin-bottom: 3px; color: var(--muted); font-size: 11px; }
+    @media (max-width: 760px) {
+      .video-overview-grid { grid-template-columns: 1fr 1fr; }
+      .video-overview-item.wide { grid-column: 1/-1; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="brand-mark">S</span><span>故事智库</span></div>
+    <div class="project">《她的第二人生》 <span class="pill">MVP V1</span><span class="pill demo">演示数据</span></div>
+    <div class="top-actions">
+      <button class="text-btn api-state" id="api-state" data-action="open-model-config" title="配置 Qwen API"><span class="api-dot"></span><span class="label">Qwen 未配置</span></button>
+      <button class="text-btn" data-action="show-data-note" title="查看数据说明"><span data-icon="info"></span><span class="label">数据说明</span></button>
+      <button class="btn" data-action="reset" title="恢复初始样例数据"><span data-icon="refresh"></span><span class="label">重置数据</span></button>
+    </div>
+  </header>
+  <nav class="module-tabs" aria-label="主功能">
+    <button class="module-tab active" data-action="switch-page" data-page="creative"><span data-icon="library"></span>创意库</button>
+    <button class="module-tab" data-action="switch-page" data-page="topics"><span data-icon="notebook"></span>选题助手</button>
+  </nav>
+  <main id="app"></main>
+  <div id="modal-root"></div>
+  <div id="toast-root" class="toast-wrap" aria-live="polite"></div>
+
+  <script>
+  (() => {
+    'use strict';
+    const STORAGE_KEY = 'knowledge-base-qwen-mvp:v1';
+    const GENRE_OPTIONS=['AI 自动识别','女性成长','现实职场','都市情感','家庭伦理','家庭悬疑','婚恋情感','校园青春','青春成长','甜宠','虐恋','复仇逆袭','身份逆袭','豪门恩怨','职场商战','法律行业','医疗行业','年代传奇','乡村现实','古装权谋','古装爱情','仙侠玄幻','奇幻冒险','悬疑推理','犯罪刑侦','惊悚怪谈','科幻未来','末日生存','无限流','穿越重生','系统爽文','喜剧荒诞','热血竞技','知识商业','历史人文','亲子家庭'];
+    const icons = {
+      info:'<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/>',
+      refresh:'<path d="M20 11a8 8 0 1 0-2 5.5"/><path d="M20 4v7h-7"/>',
+      library:'<path d="M4 4h16v16H4z"/><path d="M8 4v16M12 8h5M12 12h5"/>',
+      notebook:'<path d="M5 3h14v18H5zM9 3v18M3 7h4M3 12h4M3 17h4"/>',
+      upload:'<path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 15v5h16v-5"/>',
+      play:'<path d="m9 7 8 5-8 5z"/>',
+      plus:'<path d="M12 5v14M5 12h14"/>',
+      edit:'<path d="m4 16-1 5 5-1L19 9l-4-4zM13 7l4 4"/>',
+      check:'<path d="m5 12 4 4L19 6"/>',
+      x:'<path d="M6 6l12 12M18 6 6 18"/>',
+      message:'<path d="M21 15a4 4 0 0 1-4 4H8l-5 3 1.5-5A8 8 0 1 1 21 15z"/>',
+      archive:'<path d="M4 7h16v13H4zM3 3h18v4H3zM9 11h6"/>',
+      trash:'<path d="M4 7h16M9 7V4h6v3M7 7l1 14h8l1-14M10 11v6M14 11v6"/>',
+      send:'<path d="m3 3 18 9-18 9 4-9zM7 12h14"/>',
+      spark:'<path d="m12 3 1.5 5.5L19 10l-5.5 1.5L12 17l-1.5-5.5L5 10l5.5-1.5z"/>',
+      eye:'<path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="2.5"/>',
+      eyeOff:'<path d="m3 3 18 18M10.6 10.6a2 2 0 0 0 2.8 2.8M9.9 4.2A10.8 10.8 0 0 1 12 4c6 0 10 8 10 8a17 17 0 0 1-2.1 3.1M6.2 6.2C3.5 8.1 2 12 2 12s4 8 10 8a9.8 9.8 0 0 0 4-.9"/>',
+      grip:'<path d="M9 5h.01M15 5h.01M9 12h.01M15 12h.01M9 19h.01M15 19h.01"/>',
+      user:'<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
+      clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+      chevron:'<path d="m9 18 6-6-6-6"/>',
+      link:'<path d="M10 13a5 5 0 0 0 7 0l2-2a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7 0l-2 2a5 5 0 0 0 7 7l1-1"/>',
+      file:'<path d="M6 2h8l4 4v16H6zM14 2v5h5"/>',
+      users:'<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.8M16 3.2a4 4 0 0 1 0 7.6"/>'
+    };
+    const icon = (name) => `<svg class="icon" viewBox="0 0 24 24" aria-hidden="true">${icons[name] || icons.file}</svg>`;
+    const clone = (v) => JSON.parse(JSON.stringify(v));
+    const nowLabel = () => new Intl.DateTimeFormat('zh-CN',{hour:'2-digit',minute:'2-digit'}).format(new Date());
+    const uid = (prefix) => `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2,6)}`;
+    const esc = (value='') => String(value).replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+
+    const defaultState = {
+      ui: { page:'creative', analysisTab:'positioning', selectedContent:'c1', selectedAnalysis:'s1-positioning-genre', modal:null, toast:null },
+      creative: {
+        scope:'series',
+        selectedSeries:'s1',
+        hiddenSeriesIds:[],
+        seriesHeights:{s1:180,s2:180},
+        series:[
+          {id:'s1',title:'她的第二人生',platform:'红果',genre:'女性成长 / 现实职场',orientation:'女频',format:'72 集 × 1–2 分钟',audience:'30–49 岁女性',theme:'中年重启与表达权',emotion:'压抑 → 解气 → 笃定',logline:'45 岁剪辑师被公司抹去作品署名后，带领一群被行业忽视的女性重新夺回叙事权。',status:'review',tone:'red',videos:['c1','c3','c4']},
+          {id:'s2',title:'小城大律师',platform:'快手',genre:'现实职场 / 法律成长',orientation:'男频向泛人群',format:'60 集 × 90 秒',audience:'24–40 岁下沉城市青年',theme:'普通人的规则武器',emotion:'憋屈 → 反击 → 释然',logline:'被大所驱逐的年轻律师回到小城，用一桩桩微小案件帮普通人重新获得解释权。',status:'ready',tone:'green',videos:['c5','c2','c6']}
+        ],
+        contents: [
+          { id:'c1', seriesId:'s1', episode:6, title:'第 6 集｜被删除的署名', source:'红果', genre:'女性成长', duration:'96 秒', status:'review', progress:100, tone:'red',goal:'林岚证明训练记录属于自己的劳动成果',change:'从被动申诉转为公开举证',focus:'删除记录、规则压制与证据反转' },
+          { id:'c3', seriesId:'s1', episode:24, title:'第 24 集｜第一个叛徒', source:'红果', genre:'女性成长', duration:'102 秒', status:'ready', progress:100, tone:'red',goal:'团队必须在泄密后完成首个商业交付',change:'林岚从保护所有人转为建立边界',focus:'信任危机、责任选择与团队重组' },
+          { id:'c4', seriesId:'s1', episode:72, title:'第 72 集｜名字留在片尾', source:'红果', genre:'女性成长', duration:'118 秒', status:'ready', progress:100, tone:'red',goal:'林岚决定是否接受原公司的联合出品条件',change:'从争取个人署名转为重写行业合作规则',focus:'终局选择、伏笔回收与价值表达' },
+          { id:'c5', seriesId:'s2', episode:1, title:'第 1 集｜没有律师接的案子', source:'快手', genre:'法律成长', duration:'92 秒', status:'review', progress:100, tone:'green',goal:'许策决定接下被所有同行拒绝的小额赔偿案',change:'从逃避职业失败转为重新站上法庭',focus:'人物亮相、规则困境与首集承诺' },
+          { id:'c2', seriesId:'s2', episode:12, title:'第 12 集｜证人改口', source:'快手', genre:'现实职场', duration:'108 秒', status:'ready', progress:100, tone:'green',goal:'许策在唯一证人改口后重建证据链',change:'从依赖口供转为寻找行为事实',focus:'证言反转、程序阻碍与小人物联盟' },
+          { id:'c6', seriesId:'s2', episode:35, title:'第 35 集｜规则也会偏心', source:'快手', genre:'法律成长', duration:'104 秒', status:'ready', progress:100, tone:'green',goal:'许策公开质疑一条看似中立的地方规定',change:'从赢下个案转为承担公共表达风险',focus:'制度冲突、舆论分化与阶段转折' }
+        ],
+        seriesAnalyses:{s1:[],s2:[]},
+        seriesAnalysisVersions:{},
+        analyses:{c1:[],c2:[],c3:[],c4:[],c5:[],c6:[]},
+        uploadDraft: { video:'', subtitle:'', comments:'', genre:'女性成长' }
+      },
+      topics: {
+        selectedSession:'s1',
+        sessions:[
+          {id:'s1',title:'被替代的她',status:'converging',updated:'今天 14:26',archived:false,confirmed:false,
+            messages:[
+              {role:'ai',text:'我先把方向收窄：与其拍“中年女性打败年轻人”，不如拍“一个长期替别人完成叙事的人，第一次为自己争取署名”。这与创意库里的观众信号更一致。',citation:'引用：中年重启共鸣、先给结果再追问原因'},
+              {role:'user',text:'我不想只讲职场复仇，希望她付出真实代价，而且前三集要能持续抓人。'},
+              {role:'ai',text:'可以把代价放在“离开成熟流程后，她必须带领一群被行业放弃的人重新交付项目”。前三集分别建立：被删名、拿到证据但失去工作、组队后发现第一个客户正是原公司。还需你决定：她最不能失去的是收入，还是专业尊严？',citation:'引用：证据反转、集尾问题来自本集后果'}
+            ],
+            profile:{theme:'中年重启与表达权',emotion:'压抑 → 解气 → 笃定',audience:'30–49 岁，经历职业停滞或价值被忽视的女性',logline:'45 岁剪辑师被 AI 工具和年轻团队双重替代后，组织一支“过气女性”内容团队，夺回被公司抹去的作品署名。',protagonist:'林岚，克制敏锐的资深剪辑师；长于替他人完成叙事，却不擅长表达自己的欲望。',conflict:'她要用专业证据夺回署名，同时承受离职、收入中断和团队失败的现实代价。',difference:'不贬低年轻人、不否定 AI；真正对抗的是把创作者隐形化的权力结构。',hooks:['第1集：她发现裁掉自己的人正在盗用她的训练模型','第2集：证据在手，但劳动合同让她无法公开','第3集：第一个救命客户，正是原公司'],risk:'避免把反派写蠢；需要明确离职后的经济压力。'},
+            references:['c1-knowledge-reuse','s1-audience-signals','c1-drama-reversal']},
+          {id:'s2',title:'完美妻子停机后',status:'exploring',updated:'昨天 19:40',archived:false,confirmed:false,
+            messages:[{role:'ai',text:'这个方向的核心不是“机器人觉醒”，而是一个把所有家庭责任做到满分的人突然停止服务，迫使每个人看见被隐藏的劳动。先确定你更想让观众感到解气，还是感到失落。',citation:'引用：价值认同来自主动表达边界'}],
+            profile:{theme:'关系祛魅与隐形劳动',emotion:'窒息 → 荒诞 → 释然',audience:'25–40 岁、长期承担家庭情绪劳动的人群',logline:'一个永远正确的“完美妻子”突然停止照顾全家，丈夫才发现她不是机器人，而是早已准备离开的真人。',protagonist:'许真，擅长解决所有人的问题，却把自己的需求藏进每日清单。',conflict:'家人试图恢复原有秩序，她则必须忍住再次替所有人收拾残局的本能。',difference:'用轻科幻误导开场，最终落回真实关系与劳动价值。',hooks:['第1集：家庭系统同时弹出“服务已终止”','第2集：丈夫找到一份精确到分钟的离开计划','第3集：女儿知道真相，却选择帮母亲隐瞒'],risk:'轻科幻外壳不能盖过现实关系；需避免说教。'},
+            references:['s1-audience-unmet','c1-knowledge-boundary']}
+        ]
+      }
+    };
+
+    let state = loadState();
+    let toastTimer;
+    let serverConfig = {base_url:'https://dashscope.aliyuncs.com/compatible-mode/v1',model_id:'qwen3.5-omni-plus-2026-03-15',configured:false,masked_key:'未配置',mock_mode:false};
+    let analysisSyncTimer;
+    let lastAnalysisSync = '';
+    let draggedSeriesId = '';
+    function loadState(){
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return clone(defaultState);
+        const saved = JSON.parse(raw);
+        if(saved && saved.creative && saved.topics){
+          saved.creative.seriesAnalyses=saved.creative.seriesAnalyses||{};
+          saved.creative.seriesAnalysisVersions=saved.creative.seriesAnalysisVersions||{};
+          saved.creative.hiddenSeriesIds=Array.isArray(saved.creative.hiddenSeriesIds)?saved.creative.hiddenSeriesIds:[];
+          saved.creative.hiddenSeriesIds=saved.creative.hiddenSeriesIds.filter(id=>id!==saved.creative.selectedSeries);
+          saved.creative.seriesHeights=saved.creative.seriesHeights||{};
+          return saved;
+        }
+        return clone(defaultState);
+      } catch (_) { return clone(defaultState); }
+    }
+    function persist(){
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (_) {}
+      scheduleAnalysisSync();
+    }
+    async function api(path,options={}){
+      const response=await fetch(path,options);
+      const type=response.headers.get('content-type')||'';
+      const body=type.includes('application/json')?await response.json():await response.text();
+      if(!response.ok) throw new Error(body?.detail||body?.message||body||`请求失败 (${response.status})`);
+      return body;
+    }
+    function updateApiState(error=false){
+      const node=document.getElementById('api-state'); if(!node)return;
+      node.classList.toggle('connected',serverConfig.configured&&!error);
+      node.classList.toggle('error',error);
+      const label=node.querySelector('.label');
+      if(label)label.textContent=error?'服务未连接':serverConfig.configured?(serverConfig.mock_mode?'Qwen Mock':'Qwen 已配置'):'Qwen 未配置';
+    }
+    async function loadServerConfig(){
+      if(location.protocol==='file:'){ updateApiState(true); return; }
+      try { serverConfig=await api('/api/config'); updateApiState(); }
+      catch (_) { updateApiState(true); }
+    }
+    function currentAnalysisPayload(){
+      if(state.creative.scope!=='video')return null;
+      const content=getContent(),series=getSeries(),fields=state.creative.analyses[content.id]||[];
+      if(!content.analysisJobId||content.status==='processing'||content.status==='failed'||!fields.length)return null;
+      return {job_id:content.analysisJobId,created_at:content.analysisCreatedAt||new Date().toISOString(),model_id:content.modelId||serverConfig.model_id,source_file:content.sourceFile||content.title,video:{title:content.title,series_title:content.seriesTitle||series?.title||'',episode_title:content.title,duration:content.duration,goal:content.goal,change:content.change,focus:content.focus,episode:Number(content.episode)||1,video_type:content.videoType||'待确认',genre:content.genre||'待确认',platform:content.source||'本地导入'},fields,storyboard:content.storyboard||[],emotion_curve:content.emotionCurve||{labels:['开始','集尾'],values:[50,50],reasons:['等待补充','等待补充']},world:content.worldAnalysis||{background_completeness:'待补充解析',notice:'尚未进行人物与世界专项解析。',characters:[],relationships:[],factions:[],elements:[]}};
+    }
+    function scheduleAnalysisSync(){
+      clearTimeout(analysisSyncTimer);
+      analysisSyncTimer=setTimeout(async()=>{
+        const payload=currentAnalysisPayload(); if(!payload)return;
+        const serialized=JSON.stringify(payload); if(serialized===lastAnalysisSync)return;
+        try { await api(`/api/analyses/${payload.job_id}`,{method:'PUT',headers:{'Content-Type':'application/json'},body:serialized}); lastAnalysisSync=serialized; }
+        catch (error) { console.warn('本地分析结果同步失败',error); }
+      },700);
+    }
+    function makeItem(id,category,title,summary,evidence,time,confidence,status='ai',applicability='同类内容的结构设计与复核',boundary='迁移时必须重新核验人物动机、题材语境与证据链。',meta=[]){
+      return {id,category,title,summary,evidence,time,confidence,status,applicability,boundary,meta,discussion:[]};
+    }
+    function applyWorldAnalysis(content,world){
+      content.worldAnalysis=world||{background_completeness:'待补充解析',notice:'尚未进行人物与世界专项解析。',characters:[],relationships:[],factions:[],elements:[]};
+    }
+    function incompleteValue(value){ return !value||['待确认','信息不足','未知','未识别'].includes(String(value).trim()); }
+    function preferWorldValue(current,next){ return incompleteValue(current)&&!incompleteValue(next)?next:(current||next||'信息不足'); }
+    function genericCharacterName(name){ return /^(女|男|人物|角色)[A-ZＡ-Ｚ甲乙丙丁一二三四五六七八九十\d]+$/i.test(String(name||'').replaceAll(' ','')); }
+    function buildUploadedWorldItems(series,videos){
+      const coverage=videos.map(episodeLabel).join('、');
+      const worlds=videos.map(video=>({video,world:video.worldAnalysis})).filter(entry=>entry.world);
+      const notices=worlds.map(({video,world})=>`${episodeLabel(video)}：${world.notice||world.background_completeness||'背景信息不全'}`);
+      const result=[];
+      const merged=[];
+      worlds.forEach(({video,world})=>(world.characters||[]).forEach(raw=>{
+        const name=(raw.name||'人物待确认').trim(),aliases=raw.aliases||[],candidates=raw.possible_matches||[];
+        let target=merged.find(item=>item.name===name||item.aliases.includes(name)||aliases.includes(item.name));
+        if(!target&&candidates.length)target=merged.find(item=>candidates.includes(item.name));
+        if(!target){
+          target={...raw,name,aliases:[...aliases],sources:[episodeLabel(video)],evidenceList:[`${episodeLabel(video)}：${raw.evidence||'缺少证据'}`],mergePending:false};
+          merged.push(target);
+        }else{
+          const uncertain=genericCharacterName(name)||candidates.length>0;
+          target.mergePending=target.mergePending||uncertain;
+          target.aliases=[...new Set([...target.aliases,...aliases,...(name===target.name?[]:[name])])];
+          target.sources.push(episodeLabel(video)); target.evidenceList.push(`${episodeLabel(video)}：${raw.evidence||'缺少证据'}`);
+          ['gender','role','faction','arc','surface_goal','deep_goal','contrast','weakness','visual_anchor','first_seen'].forEach(key=>target[key]=preferWorldValue(target[key],raw[key]));
+          target.confidence=Math.round(((Number(target.confidence)||0)+(Number(raw.confidence)||0))/2);
+        }
+      }));
+      if(notices.length){
+        const notice=makeItem(`${series.id}-world-notice`,'world','背景完整度',notices.join('；'),`当前只覆盖${coverage}，未上传内容不推断。`,coverage,worlds.length?70:0,worlds.some(x=>!x.world.characters?.length)?'unknown':'ai');
+        notice.entityType='worldNotice'; result.push(notice);
+      }
+      merged.forEach((raw,index)=>{
+        const item=makeItem(`${series.id}-uploaded-character-${index+1}`,'world',raw.name,`${raw.role||'出场人物'}｜${raw.surface_goal||'信息不足'}`,raw.evidenceList.join('；'),raw.sources.join('、'),Number(raw.confidence)||0,raw.status||'ai','人物设计、关系与跨集状态复核','当前只基于已上传视频；跨集身份合并需要人工确认。');
+        item.entityType='character'; item.details={role:raw.role||'出场人物',faction:raw.faction||'信息不足',arc:raw.arc||'信息不足',surface:raw.surface_goal||'信息不足',deep:raw.deep_goal||'信息不足',contrast:raw.contrast||'信息不足',weakness:raw.weakness||'信息不足',visual:raw.visual_anchor||'信息不足',gender:raw.gender||'待确认',firstSeen:raw.first_seen||'时间待确认',aliases:raw.aliases||[],sourceEpisodes:raw.sources,mergePending:Boolean(raw.mergePending),possibleMatches:raw.possible_matches||[]}; result.push(item);
+      });
+      const edges=[];
+      worlds.forEach(({video,world})=>(world.relationships||[]).forEach(raw=>edges.push({from:raw.from_name,to:raw.to_name,label:raw.relation||'关系待确认',tone:'conflict',evidence:`${episodeLabel(video)}：${raw.evidence||'缺少证据'}`})));
+      if(edges.length){const relation=makeItem(`${series.id}-uploaded-relationships`,'world','人物关系网',`从已上传视频识别 ${edges.length} 条关系。`,edges.map(x=>x.evidence).join('；'),coverage,75,'ai');relation.entityType='relationship';relation.details={edges};result.push(relation);}
+      const factionMap=new Map();
+      worlds.forEach(({video,world})=>(world.factions||[]).forEach(raw=>{
+        const name=raw.name||'阵营待确认',existing=factionMap.get(name);
+        if(!existing)factionMap.set(name,{...raw,sources:[episodeLabel(video)]});else{existing.sources.push(episodeLabel(video));['position','traits','goal','resources','constraints','evidence'].forEach(key=>existing[key]=preferWorldValue(existing[key],raw[key]));}
+      }));
+      [...factionMap.values()].forEach((raw,index)=>{const item=makeItem(`${series.id}-uploaded-faction-${index+1}`,'world',raw.name,`${raw.position||'信息不足'}；目标：${raw.goal||'信息不足'}`,raw.evidence||'缺少证据',raw.sources.join('、'),Number(raw.confidence)||0,raw.status||'ai');item.entityType='faction';item.details={position:raw.position||'信息不足',traits:raw.traits||'信息不足',goal:raw.goal||'信息不足',resources:raw.resources||'信息不足',constraints:raw.constraints||'信息不足'};result.push(item);});
+      worlds.forEach(({video,world})=>(world.elements||[]).forEach((raw,index)=>{const item=makeItem(`${series.id}-uploaded-world-${video.id}-${index+1}`,'world',`${raw.category||'世界观'}｜${raw.title||'要素待确认'}`,raw.description||'信息不足',raw.evidence||'缺少证据',episodeLabel(video),Number(raw.confidence)||0,raw.status||'ai','世界观、规则与冲突复核','当前只基于已上传视频，不外推未出现设定。');item.entityType='worldElement';result.push(item);}));
+      if(!merged.length){const missing=makeItem(`${series.id}-world-empty`,'world','角色档案待补充','背景信息不全：当前分析尚未建立独立角色档案，可执行专项补充解析。','只要视频中有人物出场，就应建立角色或代号档案。',coverage,0,'unknown');missing.entityType='worldNotice';result.push(missing);}
+      return result;
+    }
+    function episodeLabel(item){ return `第 ${Math.max(1,Number(item?.episode)||1)} 集`; }
+    function uploadedSeriesVideos(series){
+      return state.creative.contents
+        .filter(item=>item.seriesId===series.id&&item.analysisJobId&&item.status!=='processing'&&item.status!=='failed'&&(state.creative.analyses[item.id]||[]).length)
+        .sort((a,b)=>(Number(a.episode)||0)-(Number(b.episode)||0));
+    }
+    function seriesSourceFingerprint(series,videos){
+      return JSON.stringify(videos.map(video=>({
+        id:video.id,episode:video.episode,title:video.title,duration:video.duration,source:video.source,genre:video.genre,created:video.analysisCreatedAt,
+        fields:(state.creative.analyses[video.id]||[]).map(field=>[field.category,field.key,field.title,field.summary,field.evidence,field.time,field.confidence,field.status]),world:video.worldAnalysis||null
+      })));
+    }
+    function seriesPresentation(series){
+      const videos=uploadedSeriesVideos(series);
+      if(!videos.length)return series;
+      const genres=[...new Set(videos.map(video=>video.genre).filter(Boolean))];
+      const platforms=[...new Set(videos.map(video=>video.source).filter(Boolean))];
+      const episodes=videos.map(episodeLabel).join('、');
+      const facts=videos.map(video=>({video,field:(state.creative.analyses[video.id]||[]).find(field=>field.category==='knowledge'&&field.key==='fact')}));
+      const overview=facts.map(({video,field})=>`${episodeLabel(video)}：${field?.summary||video.goal||video.focus||'等待人工补充内容梗概'}`).join('；');
+      return {...series,
+        genre:genres.join(' / ')||'待确认',platform:platforms.join(' / ')||'本地导入',orientation:'待确认',
+        format:`已上传 ${videos.length} 集 · ${episodes}`,audience:'待接入真实观众数据',
+        theme:'待更多剧集与人工审核确认',emotion:'见已上传视频情绪曲线',
+        logline:`当前整剧判断仅覆盖${episodes}。${overview}`
+      };
+    }
+    function seriesCategoryForField(field){
+      if(field.category==='responsibility')return ['type','episode'].includes(field.key)?'positioning':'narrative';
+      if(field.category==='timing'||field.category==='audiovisual')return 'retention';
+      if(field.category==='drama')return 'narrative';
+      if(field.category==='audience')return 'audience';
+      if(field.category==='knowledge')return 'knowledge';
+      return '';
+    }
+    function buildUploadedSeriesFields(series,videos){
+      const coverage=videos.map(episodeLabel).join('、');
+      const view=seriesPresentation(series);
+      const items=[
+        makeItem(`${series.id}-uploaded-coverage`,'positioning','分析覆盖范围',`当前基于 ${videos.length} 个已上传视频：${coverage}。`,`来源为本机已完成的单视频 Qwen 分析结果；未上传部分不推断。`,coverage,100,'known','判断当前分析覆盖与证据边界','新增或修改单视频后需要重新汇总。',[['已上传',`${videos.length} 集`],['覆盖',coverage]]),
+        makeItem(`${series.id}-uploaded-genre`,'positioning','题材',view.genre,'来自已上传视频的题材设置。',coverage,100,'known','整剧题材归类','仅代表当前已上传样本。'),
+        makeItem(`${series.id}-uploaded-platform`,'positioning','来源平台',view.platform,'来自已上传视频的来源平台设置。',coverage,100,'known','来源管理与平台分组','未接入平台行为数据。')
+      ];
+      videos.forEach(video=>{
+        const fact=(state.creative.analyses[video.id]||[]).find(field=>field.category==='knowledge'&&field.key==='fact');
+        items.push(makeItem(`${series.id}-uploaded-overview-${video.id}`,'positioning',`${episodeLabel(video)}内容梗概`,fact?.summary||video.goal||video.focus||'等待人工补充',fact?.evidence||'来自该视频基础信息与单视频解析结果。',episodeLabel(video),fact?.confidence||0,fact?.status==='unknown'?'unknown':'ai','整剧定位与已上传内容概览','不能据此推断未上传剧集。'));
+      });
+      const groups=new Map();
+      videos.forEach(video=>(state.creative.analyses[video.id]||[]).forEach(field=>{
+        const category=seriesCategoryForField(field); if(!category)return;
+        const key=`${category}:${field.category}:${field.key}`;
+        if(!groups.has(key))groups.set(key,{category,sourceCategory:field.category,key:field.key,title:field.title,entries:[]});
+        groups.get(key).entries.push({video,field});
+      }));
+      groups.forEach(group=>{
+        const resolved=group.entries.filter(entry=>entry.field.status!=='unknown');
+        const status=resolved.length?'ai':'unknown';
+        const confidence=resolved.length?Math.round(resolved.reduce((sum,entry)=>sum+(Number(entry.field.confidence)||0),0)/resolved.length):0;
+        const summary=group.entries.map(({video,field})=>`${episodeLabel(video)}：${field.summary||'未解析'}`).join('；');
+        const evidence=group.entries.map(({video,field})=>`${episodeLabel(video)}：${field.evidence||'缺少证据'}`).join('；');
+        items.push(makeItem(`${series.id}-aggregate-${group.category}-${group.sourceCategory}-${group.key}`,group.category,group.title,summary,evidence,coverage,confidence,status,group.entries[0].field.applicability||'整剧结构分析与复核',`当前只覆盖${coverage}；未上传部分不推断。`,[['样本',`${videos.length} 集`],['来源','单视频分析汇总']]));
+      });
+      items.push(...buildUploadedWorldItems(series,videos));
+      return items;
+    }
+    function refreshUploadedSeriesAnalysis(series){
+      const uploaded=uploadedSeriesVideos(series);
+      if(!uploaded.length)return null;
+      const versions=state.creative.seriesAnalysisVersions||(state.creative.seriesAnalysisVersions={});
+      const fingerprint=seriesSourceFingerprint(series,uploaded);
+      if(versions[series.id]!==fingerprint){
+        const hadVersion=Boolean(versions[series.id]);
+        const existing=new Map((state.creative.seriesAnalyses[series.id]||[]).map(item=>[item.id,item]));
+        const generated=buildUploadedSeriesFields(series,uploaded).map(item=>{
+          const previous=existing.get(item.id);
+          return hadVersion&&previous&&(previous.status==='edited'||previous.status==='confirmed')?previous:item;
+        });
+        state.creative.seriesAnalyses[series.id]=generated;
+        versions[series.id]=fingerprint;
+      }
+      return state.creative.seriesAnalyses[series.id];
+    }
+    function uploadedSeriesEmotionCurve(series){
+      const videos=uploadedSeriesVideos(series).filter(video=>video.emotionCurve?.values?.length);
+      if(!videos.length)return null;
+      if(videos.length===1){
+        const video=videos[0],curve=video.emotionCurve;
+        return {title:`观众情绪—时间曲线（${episodeLabel(video)}样本）`,labels:curve.labels,values:curve.values,reasons:curve.reasons};
+      }
+      const peaks=videos.map(video=>{
+        const values=video.emotionCurve.values.map(Number),peak=Math.max(...values),index=values.indexOf(peak);
+        return {label:episodeLabel(video).replaceAll(' ',''),value:peak,reason:`该集情绪峰值出现在 ${video.emotionCurve.labels[index]}：${video.emotionCurve.reasons[index]}`};
+      });
+      return {title:'已上传单集情绪峰值',labels:peaks.map(x=>x.label),values:peaks.map(x=>x.value),reasons:peaks.map(x=>x.reason)};
+    }
+    function buildSeriesAnalyses(series){
+      const her=series.id==='s1';
+      const p=her?{
+        desire:'从夺回个人署名，升级为让被隐形的创作者获得表达权',characters:'林岚（主角正1）｜周既明（主角反1）｜苏棠（关键配角）｜“过气女性”团队（群像）',relations:'林岚与周既明围绕作品解释权对抗；林岚与苏棠从代际戒备转为证据同盟',world:'近未来内容行业进入 AI 辅助生产常态，效率提高但劳动署名规则滞后',factions:'创作者阵营 / 公司管理层 / 客户观察方；训练数据、客户信任和作品署名是三类关键资源',main:'主线是林岚夺回叙事权；支线是团队成员分别重建职业身份与合作规则',arc:'被删除署名 → 独自举证 → 被迫离职 → 组建团队 → 交付危机 → 建立新规则',mystery:'谁删除了训练记录、苏棠为何保存截图、周既明真正担心的并非侵权而是客户流失',ending:'终局不以击垮旧公司收束，而以林岚拒绝“无署名联合出品”完成价值表达',signal:'“中年重启”评论簇规模最大；“不要把年轻人写成敌人”跨平台一致性最高',opportunity:'把年龄焦虑转换为表达权与隐形劳动议题，避免传统姐姐逆袭的代际对立'
+      }:{
+        desire:'让缺少资源的普通人也能使用规则，而不是只能被规则解释',characters:'许策（主角正1）｜韩法官（引路人）｜顾主任（阶段反派）｜委托人群像',relations:'许策与韩法官从理念冲突转为程序协作；与顾主任争夺规则的公共解释权',world:'下沉城市熟人社会与正式法律程序并存，人情、声誉和程序构成三套秩序',factions:'基层法律服务者 / 地方利益联盟 / 普通委托人；证据、时间和公共舆论是关键资源',main:'主线是许策重建职业信念；支线由案件群像持续验证“规则能否保护普通人”',arc:'大所受挫 → 回乡接案 → 个案胜利 → 触碰地方利益 → 舆论反噬 → 建立公益协作网络',mystery:'许策为何被大所除名、韩法官为何拒绝升迁、顾主任如何影响证人和程序',ending:'终局不是主角成为名律师，而是小城出现一套普通人可持续使用的法律协作机制',signal:'观众最关注“小案是否值得被认真对待”；程序细节带来高收藏但也提高理解门槛',opportunity:'用具体生活损失承载法律议题，让规则知识与情绪反击同时成立'
+      };
+      return [
+        makeItem(`${series.id}-p1`,'positioning',`Logline｜${series.logline}`,`母题是“${series.theme}”，核心欲望是${p.desire}。`,`整剧简介、前 12 集主冲突与终局状态形成同一因果方向。`,'全剧 / 项目设定',95,'confirmed','整剧定位、选题判断、宣传表达','不能把母题压缩为一次性打脸或单纯职业成功。',[['题材',series.genre],['形态',series.format]]),
+        makeItem(`${series.id}-p2`,'positioning',`受众与市场｜${series.audience}`,`主要情绪路径为${series.emotion}；市场切口来自熟悉处境中的新解释，而非奇观设定。`,`平台画像、追剧行为、评论簇与收藏数据交叉验证。`,'全剧行为与评论',89,'ai','市场定位、情绪策略','当前样本集中于单一平台，不能直接推断所有短剧观众。',[['平台',series.platform],['主情绪',series.emotion]]),
+        makeItem(`${series.id}-p3`,'positioning','内容承诺｜每 3 集完成一次阶段性选择',`单集提供证据或行动进展，三集单元改变一次人物关系，阶段结尾提升对抗层级。`,`前 18 集拆集表中，关系状态平均每 2.8 集发生一次可见变化。`,'第 1–18 集',87,'ai','短剧拆集、阶段节奏','后半程需要避免只扩大事件规模而不改变人物。'),
+        makeItem(`${series.id}-w1`,'world','核心人物与角色效率',p.characters,`角色出场、目标、阻碍与状态变化已在整剧人物表中对齐。`,'人物表 / 全剧',94,'edited','人物系统、角色合并判断','群像成员必须承担不同剧情功能，不能只作为主角赞同者。'),
+        makeItem(`${series.id}-w2`,'world','关系网络与变化方向',p.relations,`关键关系在第 1、12、24、48、72 集均存在可追溯状态变化。`,'关系图谱 / 关键集',91,'ai','关系线、角色弧','关系变化必须由共同事件推动，不能只靠态度转变。'),
+        makeItem(`${series.id}-w3`,'world','世界规则与时代条件',p.world,`规则来源于人物反复面对的制度限制、资源差异和社会惯例。`,'世界观设定 / 场景证据',90,'confirmed','现实题材世界观、规则冲突','规则必须通过具体行动表现，不能只用旁白解释。'),
+        makeItem(`${series.id}-w4`,'world','势力、资源与禁忌',p.factions,`每类资源都至少改变过一次谈判位置；禁忌集中在公开质疑既有秩序。`,'阵营表 / 冲突节点',86,'ai','阵营设计、冲突升级','资源不能在关键时刻无成本出现。'),
+        makeItem(`${series.id}-n1`,'narrative','主线、支线与故事内核',p.main,`主线目标、人物成长和主题表达在六个阶段节点上保持一致。`,'全剧故事弧',93,'confirmed','整剧大纲、支线取舍','支线若不改变主线资源、关系或认知，应考虑删除。'),
+        makeItem(`${series.id}-n2`,'narrative','六阶段叙事弧',p.arc,`每阶段同时改变外部任务和人物内部选择，避免只换事件不换状态。`,'第 1 / 12 / 24 / 36 / 48 / 72 集',92,'ai','长线节奏、阶段目标','阶段转折必须回收前置因果，不能依赖新角色空降。'),
+        makeItem(`${series.id}-n3`,'narrative','冲突系统｜规则解释权逐级升级',`冲突从人与人争执，升级为团队资源、行业规则和公共价值的竞争。`,`冲突对象、赌注和解决方式在阶段表中逐级扩大。`,'全剧冲突图',88,'ai','冲突升级、续集设计','升级规模的同时必须保留主角的个人欲望。'),
+        makeItem(`${series.id}-n4`,'narrative','因果完整性｜关键胜利均由前置行动兑现',`证据、盟友和能力都提前出现；反转改变的是信息解释，而不是凭空增加事实。`,`关键反转的前置铺垫覆盖率为 83%，终局仍有 2 条弱铺垫待补。`,'关键反转审计',84,'ai','大纲质检、伏笔检查','覆盖率是演示性判断，需要人工逐项核验。'),
+        makeItem(`${series.id}-r1`,'retention','神秘、伏笔与揭晓系统',p.mystery,`悬念分为事实未知、人物隐瞒和价值选择三类，避免全剧只靠秘密身份。`,'伏笔—揭晓—回收表',90,'ai','长线悬念、追更动力','秘密揭晓后必须改变行动或关系。'),
+        makeItem(`${series.id}-r2`,'retention','留存节奏｜问题跨集，结果不拖延',`单集解决眼前动作，阶段问题延续 3–6 集；重大情绪峰值后安排低烈度关系戏。`,`完播曲线下降点主要集中在重复争执段，峰值集中在证据公开与主动选择。`,'全剧留存曲线',88,'ai','短剧留存、张弛控制','不能为卡点故意截断完整动作。'),
+        makeItem(`${series.id}-r3`,'retention','终局、价值表达与风格',p.ending,`风格保持克制现实感，价值表达由主角选择和合作规则落地。`,'终局剧本 / 视觉风格表',93,'confirmed','终局设计、价值表达','金句只能总结行动，不能替代行动。'),
+        makeItem(`${series.id}-a1`,'audience','观众信号簇｜创作价值与代表性分开',p.signal,`高创作价值的少数意见作为灵感，高代表性意见用于证明情绪反应，两者不混用。`,'评论 48.6 万条 / 3 平台',91,'confirmed','观众需求、评论分析','存在平台人群偏差和互动排序偏差。',[['创作价值','88'],['群体代表性','82']]),
+        makeItem(`${series.id}-a2`,'audience','行为与评论交叉验证',`第 6、24、48 集的留存峰值均与“主动选择”评论增长同步；争吵重复段出现快进与负面评论共振。`,`留存、复看、分享与评论锚定到同一场景和节拍。`,'行为数据 + 内容锚点',87,'ai','有效性验证、节奏优化','相关性不等于因果，需要结合内容机制判断。'),
+        makeItem(`${series.id}-a3`,'audience','观众机会与风险',p.opportunity,`机会来自未满足期待；风险集中在反派降智、口号化和群像工具化。`,'观众洞察 v3 / 反例簇',89,'ai','选题、改编、成稿复核','洞察需要在自有项目上线后继续验证。'),
+        makeItem(`${series.id}-k1`,'knowledge','可迁移方法｜先改变权力位置，再释放情绪',`事实：高峰都包含可见行动；机制：行动改变解释权；迁移：为新题材寻找等价的资源或证据。`,`第 6、24、48 集峰值节点与评论情绪变化。`,'知识提炼链',94,'confirmed','选题、情节、高潮设计','不能只复制“拿出证据”的表面桥段。'),
+        makeItem(`${series.id}-k2`,'knowledge','人物模式｜专业能力必须转化为剧情动作',`人物魅力来自专业判断改变局势，而不是设定表里的形容词。`,`关键胜利均可追溯到主角的职业动作。`,'人物行动证据',90,'ai','人物设计、能力展示','能力需要限制条件和失败成本。'),
+        makeItem(`${series.id}-k3`,'knowledge','失败反例｜重复压迫不会自动累积爽感',`当阻碍只重复羞辱、不改变赌注或关系时，观众会认为剧情注水。`,`三段重复争吵对应快进率上升 12%–18%。`,'失败片段 / 行为数据',86,'ai','节奏质检、删改判断','行为变化还受发布时间与流量结构影响。')
+      ];
+    }
+    function buildVideoAnalyses(video){
+      const prefix=video.id, isFirst=video.id==='c1';
+      const ids={hook:isFirst?'nd1':`${prefix}-t1`,turn:isFirst?'nd3':`${prefix}-d2`,signal:isFirst?'sg1':`${prefix}-a1`,rule:isFirst?'kn1':`${prefix}-k1`,pause:isFirst?'kn3':`${prefix}-k2`};
+      return [
+        makeItem(`${prefix}-v1`,'responsibility',`本集目标｜${video.goal}`,`叙事职责是推进“${video.focus}”，同时完成一次明确的人物状态变化。`,`前集遗留问题、本集行动结果和下一集新问题已形成连续因果。`,'全片 / 前后承接',94,'confirmed','拆集、单集目标检查','本集目标必须服务整剧阶段目标。',[['集号',`第 ${video.episode} 集`],['类型','正片单集']]),
+        makeItem(`${prefix}-v2`,'responsibility',`信息增量与状态变化｜${video.change}`,`新增信息不是背景说明，而是改变人物下一步选择的有效信息。`,`结尾人物的资源、关系或认知至少一项与开头不同。`,'00:00–集尾',89,'ai','单集完整性、连续性检查','若状态无变化，本集可能只是重复表达。'),
+        makeItem(ids.hook,'timing','首帧与黄金 3 秒｜先展示不可逆结果',`首帧建立异常，3 秒内给出与人物命运直接相关的结果，再延迟解释原因。`,`高对比画面、关键证据特写与一句未完成台词共同建立信息缺口。`,'00:00–00:03',93,isFirst?'confirmed':'ai','短剧钩子、首屏设计','结果必须与本集核心目标相关，不能制造假悬念。'),
+        makeItem(`${prefix}-t2`,'timing','前 30 秒｜目标、阻碍、赌注全部就位',`0–8 秒建立问题，8–18 秒明确行动目标，18–30 秒让阻碍具体化并抬高失败成本。`,`场景切分为 3 个节拍、7 个镜头与 11 个表达原子。`,'00:00–00:30',90,'ai','前 30 秒留存、节拍设计','信息密度不能以牺牲人物可理解性为代价。',[['场景','3'],['节拍','7'],['镜头','26'],['表达原子','41']]),
+        makeItem(`${prefix}-t3`,'timing','集尾卡点｜结果落地后产生新问题',`本集完成一个动作结果，但由该结果自然产生更高层级的下一集问题。`,`最后 8 秒包含结果、反应和新问题三个节拍。`,'集尾 8 秒',88,'ai','连续短剧卡点','不能在动作中间机械截断。'),
+        makeItem(`${prefix}-d1`,'drama','目标—阻碍—赌注闭环',`人物目标是${video.goal}；阻碍同时来自规则、人际关系和时间压力。`,`每个阻碍都迫使人物付出新代价，而非重复争吵。`,'全片冲突表',91,'ai','戏剧冲突、场景目标','阻碍升级后必须给人物新的应对动作。'),
+        makeItem(ids.turn,'drama','反转与爽点｜解释权发生转移',`反转不改变既有事实，而是用新证据重新解释事实，使${video.change}。`,`前置伏笔在反转前至少出现两次，爽点由行动而非口号完成。`,'中段至情绪峰值',95,isFirst?'confirmed':'ai','反转、爽点、证据链','缺少前置铺垫时会变成机械降神。'),
+        makeItem(`${prefix}-d3`,'drama','悬念与未完成期待',`观众知道人物必须行动，但暂时不知道她会牺牲哪种资源，形成选择型悬念。`,`评论中的“她会不会公开”“代价是什么”集中锚定在决策前。`,'关键选择前后',86,'ai','悬念、评论期待','选择必须真实两难，不能有无成本最优解。'),
+        makeItem(`${prefix}-av1`,'audiovisual','台词与动作｜信息通过职业动作被看见',`台词负责立场，动作负责证据；关键判断尽量通过屏幕操作、停顿和视线关系完成。`,`高复述台词前均有可见行动铺垫。`,'镜头 / 台词 / 动作',90,'ai','视听转译、台词优化','不能让角色用台词复述观众已经看见的信息。'),
+        makeItem(`${prefix}-av2`,'audiovisual','构图、声音与情绪控制',`压迫段使用固定中景和环境底噪，反转后改为近景与短暂静默，强化权力位置变化。`,`BGM、音效和镜头距离与情绪曲线在峰值点同步变化。`,'全片视听时序',87,'ai','分镜、声音、情绪节奏','风格手段必须服务叙事，不能成为固定模板。'),
+        makeItem(ids.signal,'audience','评论信号簇｜具体处境比抽象爽感更有共鸣',`高赞评论围绕“${video.focus}”展开；创作价值与群体代表性分别评分。`,`同类评论去重聚类，并锚定到具体时间码、人物和台词。`,'评论样本 / 内容锚点',92,isFirst?'confirmed':'ai','观众需求、内容优化','单条高赞评论不能代表群体共识。',[['创作价值','91'],['代表性','84']]),
+        makeItem(`${prefix}-a2`,'audience','行为印证与反例',`情绪峰值对应复看和分享上升；解释过长段出现留存下降，但部分专业观众认为信息必要。`,`行为指标说明“哪里变化”，评论解释“为什么变化”。`,'留存曲线 + 评论上下文',85,'ai','效果验证、删改判断','平台分发变化可能干扰单集行为指标。'),
+        makeItem(ids.rule,'knowledge','迁移规则｜先给结果，再追问原因',`事实：首屏先给结果；机制：建立命运相关的信息缺口；迁移：替换结果和证据，不复制表面桥段。`,`首帧、前 3 秒与评论追问形成完整证据链。`,'fact → why → reuse',93,isFirst?'confirmed':'ai','证据型钩子、现实题材','不适合依赖氛围慢启的内容。'),
+        makeItem(ids.pause,'knowledge','迁移规则｜情绪峰值后给观众消化时间',`核心行动或金句后保留短暂反应镜头，让价值判断由群体反应完成。`,`峰值后两秒静默对应高复述与高分享。`,'峰值后 2 秒',84,isFirst?'confirmed':'ai','价值表达、传播台词','高动作场面中可能拖慢节奏。')
+      ];
+    }
+    function buildFields(prefix,category,rows){
+      return rows.map((row,index)=>{
+        const [key,title,value,evidence,time='分析对象全范围',status='ai',confidence=86,applicability='内容分析、创作判断与质量复核',boundary='迁移到其他项目时需重新核验人物、题材和证据语境']=row;
+        return makeItem(`${prefix}-${category}-${key||index}`,category,title,value,evidence,time,confidence,status,applicability,boundary,[]);
+      });
+    }
+    function makeEntity(item,entityType,details){ item.entityType=entityType; item.details=details; return item; }
+    function buildCharacterItems(series){
+      const her=series.id==='s1';
+      const rows=her?[
+        ['linlan','林岚','主角正1','创作者团队','从隐忍举证到主动建立新规则','保住职业与作品署名','不再替他人隐身，建立平等创作秩序','外表克制但关键时刻极具攻击性','习惯独自承担，难以信任团队','银灰短发、红色时间线、旧剪辑键盘','confirmed',96],
+        ['zhou','周既明','主角反1','公司管理层','从掌控流程到失去解释权','保住客户与公司资产控制权','证明个人贡献可以被制度吸收','话术温和但控制欲极强','过度相信流程能消除个人责任','深灰西装、始终整齐的文件夹','ai',92],
+        ['sutang','苏棠','关键配角 / 证人','创作者团队（后期）','从服从算法到主动保存并公开证据','保住工作并避免卷入冲突','成为能对自己选择负责的创作者','看似功利，实际最在意创作公平','害怕失去机会，容易延迟表态','黄色发夹、后台截图、快速敲击动作','ai',89],
+        ['chenman','陈曼','团队型配角','创作者团队','从被行业淘汰到承担团队交付责任','获得稳定收入并证明经验仍有价值','摆脱“只能辅助别人”的自我定位','嘴硬直接，却最擅长照顾团队情绪','遇到失败会先否定自己的价值','旧皮尺、橙色保温杯、手写排期表','ai',86]
+      ]:[
+        ['xuce','许策','主角正1','基层法律服务者','从职业逃避到承担公共表达风险','赢下眼前案件并恢复执业信誉','让普通人真正拥有使用规则的能力','嘴上现实，行动上有极强理想主义','好胜且不愿承认自己需要帮助','磨旧公文包、蓝色便签、卷起袖口','confirmed',95],
+        ['gu','顾主任','主角反1','地方利益联盟','从隐性施压到公开争夺规则解释权','维持地方秩序与利益网络','证明人情秩序比正式规则更有效','待人周到但从不允许别人拒绝','低估普通人持续协作的能力','木质手串、深色茶杯、慢速停顿','ai',91],
+        ['han','韩法官','引路人 / 制衡者','基层法律服务者','从程序中立到主动建立协作机制','守住程序边界与司法信誉','让程序成为弱者也能使用的公共工具','看似冷淡，实际最重视人的尊严','害怕个人情感影响职业判断','白瓷杯、红笔、始终端正的坐姿','ai',90],
+        ['tang','唐小满','委托人型配角','普通委托人','从求助者成长为社区协作发起人','拿回小额赔偿并保护家人','让相同处境的人不必重复孤立求助','性格怯弱但记忆与观察极其敏锐','面对权威容易先怀疑自己','格纹围巾、票据盒、旧录音笔','ai',87]
+      ];
+      return rows.map(r=>{
+        const [id,name,role,faction,arc,surface,deep,contrast,weakness,visual,status,confidence]=r;
+        return makeEntity(makeItem(`${series.id}-char-${id}`,'world',name,`${role}｜${surface}`,`人物出场、行动、关系和状态变化形成证据链`,'全剧人物轨迹',confidence,status,'人物设计、角色弧与关系戏','人物属性必须由行动持续验证。'),'character',{role,faction,arc,surface,deep,contrast,weakness,visual});
+      });
+    }
+    function buildRelationshipItem(series){
+      const her=series.id==='s1';
+      const edges=her?[
+        {from:'林岚',to:'周既明',label:'争夺作品解释权',tone:'conflict'},
+        {from:'林岚',to:'苏棠',label:'代际戒备 → 证据同盟',tone:'ally'},
+        {from:'林岚',to:'陈曼',label:'负责人 → 平等搭档',tone:'ally'},
+        {from:'苏棠',to:'周既明',label:'服从流程 → 公开质疑',tone:'conflict'}
+      ]:[
+        {from:'许策',to:'顾主任',label:'争夺规则解释权',tone:'conflict'},
+        {from:'许策',to:'韩法官',label:'理念冲突 → 程序协作',tone:'ally'},
+        {from:'许策',to:'唐小满',label:'代理人 → 公共伙伴',tone:'ally'},
+        {from:'韩法官',to:'顾主任',label:'程序制衡',tone:'conflict'}
+      ];
+      return makeEntity(makeItem(`${series.id}-world-relationship`,'world','人物关系网','关键关系均具有方向、冲突性质和阶段变化。','关系节点与关键集事件联动','全剧关系图谱',91,'ai','关系设计与连续性管理','关系变化必须由共同事件推动。'),'relationship',{edges});
+    }
+    function buildFactionItems(series){
+      const her=series.id==='s1';
+      const rows=her?[
+        ['creators','创作者团队','被行业忽视但拥有经验与专业判断的内容生产者','能力互补、资源有限、对旧流程既依赖又警惕','完成新项目交付，并建立公开署名与责任规则','训练数据、专业经验、真实作品案例','现金流紧张，成员信任尚未稳定'],
+        ['company','公司管理层','掌握客户、流程和数据权限的既有生产组织','强调效率与可复制性，倾向把个人贡献吸收到制度中','守住客户与资产控制权，维持原有交付秩序','平台关系、合同权限、客户资源','无法公开解释训练数据与个人劳动的边界'],
+        ['clients','客户观察方','以交付结果和商业风险为首要判断标准的外部力量','立场可变，谁能降低风险就支持谁','获得稳定交付，同时避免卷入署名争议','预算、项目选择权、公开背书','信息不对称，容易被既有品牌影响']
+      ]:[
+        ['legal','基层法律服务者','在正式程序内帮助普通人使用规则的专业群体','重视证据与程序，但内部对公共表达尺度存在分歧','让小案也能得到可持续处理','程序知识、案件经验、职业信用','时间与人力有限，必须守住程序边界'],
+        ['local','地方利益联盟','依靠熟人网络与地方惯例维持既有秩序的力量','不直接否定规则，而是通过关系与资源改变规则执行','维持利益网络和地方控制力','人情网络、信息优势、资源调配权','公开冲突会损害其正当性与声誉'],
+        ['citizens','普通委托人','承担具体生活损失但缺乏规则资源的当事人群体','诉求分散、风险承受力低，协作后才形成力量','解决眼前损失，并减少后来者重复求助成本','生活事实、社区关系、真实证言','面对权威容易退缩，协作成本较高']
+      ];
+      return rows.map(([id,name,position,traits,goal,resources,constraints],index)=>makeEntity(makeItem(`${series.id}-faction-${id}`,'world',name,`${position}；目标：${goal}`,`阵营目标、关键资源与行动节点交叉核验`,'全剧阵营轨迹',88-index,'ai','世界观、阵营冲突与资源设计','阵营不能被简化为单一善恶标签。'),'faction',{position,traits,goal,resources,constraints}));
+    }
+    function buildPlatformItems(prefix,scope){
+      const rows=[['hongguo','红果'],['douyin','抖音'],['kuaishou','快手']];
+      return rows.map(([id,platform])=>makeEntity(makeItem(`${prefix}-audience-platform-${id}`,'audience',platform,'尚未接入可核验的平台数据，暂不生成量化指标与观众结论。','需要接入平台评论、弹幕、留存及采集批次记录后分析','数据待接入',0,'unknown','分平台观众洞察与内容优化','平台人群差异不可直接外推。'),'platform',{platform,source:'待接入真实平台数据',note:'当前仅保留分析位置，不展示无依据的反馈量、共鸣度、增长率或代表评论。',fields:['有效反馈规模','高频情绪','内容锚点','行为变化','代表评论']}));
+    }
+    function buildSeriesFields(series){
+      const her=series.id==='s1';
+      const names=her?{lead:'林岚',opponent:'周既明',ally:'苏棠',arc:'被抹名 → 独自举证 → 被迫离职 → 组建团队 → 重写合作规则',world:'近未来内容行业已普遍使用 AI 辅助生产，但劳动署名规则明显滞后',main:'林岚夺回作品署名，并进一步争取创作者对作品的解释权',sub:'团队成员分别重建职业身份；苏棠从服从流程转为证据同盟',mystery:'谁删除训练记录，以及公司为何急于切断模型与林岚的关系',end:'林岚拒绝无署名的联合出品，推动新的公开署名规则'}:{lead:'许策',opponent:'顾主任',ally:'韩法官',arc:'大所受挫 → 回乡接案 → 个案胜利 → 触碰地方利益 → 舆论反噬 → 建立公益网络',world:'下沉城市中熟人社会、地方惯例与正式法律程序并行运作',main:'许策用具体案件证明普通人也能获得规则的保护',sub:'韩法官的程序理想、委托人群像和地方利益链相互推动',mystery:'许策为何被大所除名，以及顾主任如何影响证人与程序',end:'小城建立普通人可以持续使用的公益法律协作机制'};
+      const evidence=`《${series.title}》剧本、成片与项目设定演示数据`;
+      return [
+        ...buildFields(series.id,'positioning',[
+          ['genre','题材',series.genre,evidence,'项目设定','known',100],
+          ['market','市场定位',her?'面向成熟用户的现实女性成长短剧，差异点是专业行动与表达权':'面向下沉城市青年的现实法律成长短剧，用生活损失解释抽象规则',evidence,'全剧 + 平台数据','ai',91],
+          ['audience','目标受众',series.audience,'平台画像、追剧行为与评论人群标签','观众样本','ai',88],
+          ['format','内容形态',series.format,'片库文件、集数与单集时长统计','全剧','known',100],
+          ['logline','Logline',series.logline,'简介、前 12 集冲突和终局状态形成同一因果方向','全剧','confirmed',95],
+          ['theme','时代母题',series.theme,'高频冲突、人物选择与价值表达聚类','全剧','ai',93],
+          ['desire','核心欲望',her?'从夺回个人署名升级为让被隐形的创作者获得表达权':'让缺少资源的普通人也能使用规则，而不是只能被规则解释','人物行动目标与关键选择','全剧','ai',92],
+          ['emotion','主情绪',series.emotion,'情绪曲线、评论情绪与关键节点对齐','全剧','ai',90]
+        ]),
+        ...buildCharacterItems(series),
+        buildRelationshipItem(series),
+        ...buildFactionItems(series),
+        ...buildFields(series.id,'world',[
+          ['characters','核心人物',`${names.lead}（主角正1）｜${names.opponent}（主角反1）｜${names.ally}（关键配角）｜阶段群像`,'人物出场、目标、行动和状态变化表','全剧','confirmed',94],
+          ['types','角色类型',`主角正1、主角反1、引路/证人型配角、功能型群像、阶段 NPC`,'角色功能与剧情贡献统计','全剧','ai',89],
+          ['relations','人物关系',`${names.lead}与${names.opponent}争夺规则解释权；与${names.ally}从价值戒备转为行动同盟`,'关系图谱及关键集状态变化','关键集','ai',92],
+          ['arc','成长弧',names.arc,'阶段目标、失败代价与主动选择','全剧','ai',93],
+          ['factions','势力阵营',her?'创作者团队 / 公司管理层 / 客户观察方':'基层法律服务者 / 地方利益联盟 / 普通委托人','阵营目标、资源与冲突记录','全剧','ai',88],
+          ['rules','世界规则',names.world,'重复出现的制度限制、行业惯例和人物遵循方式','全剧','confirmed',91],
+          ['resources','关键资源',her?'训练数据、客户信任、作品署名、交付能力':'证据、程序时间、公共舆论、熟人信用','资源获得、失去和交换节点','全剧','ai',90],
+          ['taboo','禁忌与代价',her?'公开质疑行业署名秩序会带来失业、诉讼和客户流失':'公开挑战地方惯例会带来执业阻碍、关系断裂和舆论反噬','人物每次越界后的实际后果','全剧','ai',87]
+        ]),
+        ...buildFields(series.id,'narrative',[
+          ['main','主线',names.main,'主角目标、阶段结果与终局选择','全剧','confirmed',94],
+          ['sub','支线',names.sub,'支线人物对主线资源、关系和认知的影响','全剧','ai',88],
+          ['conflict','冲突系统',`冲突从个人争执升级为团队资源、制度规则和公共价值的竞争`,'冲突对象、阻碍、赌注和解决方式表','全剧','ai',91],
+          ['goals','阶段目标',her?'举证署名 → 离职生存 → 团队交付 → 行业规则谈判':'接下小案 → 重建证据 → 对抗利益链 → 建立协作机制','阶段拆集表','六阶段','ai',92],
+          ['peaks','节奏峰值',`平均每 3 集形成一次关系变化，每 12 集完成一次对抗层级升级`,'剧情强度曲线、留存峰值和关键选择','全剧','ai',86],
+          ['adapt','改编版本',`原创短剧版本 v3；当前无外部 IP 源稿映射`,'版本记录、删改记录与审核时间','项目版本','known',100],
+          ['original','原创增量',`原创人物关系、职业场景和阶段事件均已标记版本与责任人`,'版本差异和原创内容清单','项目版本','known',98],
+          ['causal','因果完整性',`关键胜利均由前置行动兑现；终局仍有 2 条弱铺垫需要补强`,'伏笔覆盖率、反转前置证据和人工复核','关键节点','ai',84]
+        ]),
+        ...buildFields(series.id,'retention',[
+          ['mystery','核心神秘',names.mystery,'评论追问、人物隐瞒和信息披露顺序','全剧','ai',89],
+          ['foreshadow','伏笔',`核心伏笔 14 条：人物行为 6、道具/证据 5、台词 3`,'伏笔首次出现位置与后续引用','全剧','ai',90],
+          ['reveal','揭晓',`揭晓分为事实揭晓、动机揭晓和价值选择揭晓，避免一次性倾倒信息`,'揭晓节点与情绪曲线','全剧','ai',87],
+          ['payback','回收',`已回收 11 条、延迟回收 2 条、弱关联 1 条`,'伏笔—揭晓—回收映射表','全剧','ai',88],
+          ['endgame','终局',names.end,'终局行动、关系状态和资源变化','终局集','confirmed',93],
+          ['value','价值表达',`价值判断由人物承担代价后的选择完成，不依赖说教式总结`,'关键选择、终局行动与高复述台词','全剧','ai',91],
+          ['style','视觉风格','待补充完整分镜与美术基准后解析','当前画面样本不足','全剧','unknown',0],
+          ['expression','表现方式',`专业动作可视化、证据链推进、群体反应承接情绪峰值`,'镜头、台词、动作与声音样本','全剧','ai',89],
+          ['golden','金句',her?'“我不是跟不上，只是不再替你们隐身。”':'“规则不是门槛，是所有人都该拿得到的工具。”','高复述台词、人物行动与价值表达对齐','关键集','ai',94]
+        ]),
+        ...buildPlatformItems(series.id,'series'),
+        ...buildFields(series.id,'audience',[
+          ['source','反馈来源与规模','待接入真实平台评论、弹幕与行为数据','需要记录平台、内容链接、采集时间、批次和去重方式','数据待接入','unknown',0],
+          ['anchor','内容锚点','待真实评论数据接入后锚定到剧、单集、场景、人物、台词和时间码','需要评论原文、上下文及内容时序','数据待接入','unknown',0],
+          ['signals','观众信号簇','暂无可核验结论','需要完成评论去重、聚类和跨平台一致性检查','数据待接入','unknown',0],
+          ['emotion','主要情绪反应','暂无可核验结论','需要评论情绪、弹幕时序和场景节点对齐','数据待接入','unknown',0],
+          ['unmet','未满足期待','暂无可核验结论','需要求后续、吐槽和反例评论簇','数据待接入','unknown',0],
+          ['creative','创作价值','暂无可核验结论','需要对真实观众信号进行具体性、可迁移性和可执行性评估','数据待接入','unknown',0],
+          ['represent','群体代表性','暂无可核验结论','需要规模、趋势、跨平台一致性与行为印证','数据待接入','unknown',0],
+          ['behavior','行为数据印证','暂无可核验结论','需要留存、复看、分享和评论时间码','数据待接入','unknown',0],
+          ['bias','质量与样本风险','待数据接入后检查互动排序、异常账号、平台人群和发布时间偏差','需要原始采集记录与质量审计','数据待接入','unknown',0]
+        ]),
+        ...buildFields(series.id,'knowledge',[
+          ['fact','结构事实',`高情绪峰值均包含改变人物权力位置的可见行动`,'关键集结构事实和行为峰值','知识提炼链','confirmed',94],
+          ['why','作用机制',`观众先看到行动改变资源或解释权，随后才获得情绪释放`,'内容结构、评论解释和行为数据交叉验证','知识提炼链','ai',92],
+          ['reuse','迁移方法',`为新题材寻找等价的资源、规则和代价，不能只复制“拿出证据”`,'成功案例、失败反例和改写变量','知识提炼链','ai',91],
+          ['asset','知识资产类型',`人物/关系模式、冲突机制、桥段规则、观众需求和失败反例`,'资产分类与去重记录','资产库','known',100],
+          ['tasks','适用任务',`选题、整剧大纲、人物设计、拆集、成稿复核与优化`,'历史调用场景和人工选择记录','调用记录','ai',88],
+          ['conditions','适用条件',`人物必须面临真实资源约束，行动需要改变关系或权力位置`,'有效案例的共同条件','案例集合','ai',89],
+          ['boundary','失效边界',`依赖氛围慢启、纯动作奇观或无现实代价的题材不宜直接使用`,'失败案例和反例评论','反例集合','ai',87],
+          ['variables','改写变量',`人物身份、关键资源、规则掌握者、公开代价和见证人关系`,'迁移试验与人工改写记录','知识版本','ai',86],
+          ['counter','失败反例',`重复压迫但不改变赌注，只会造成注水感，不会自动累积爽感`,'快进率上升片段与负面评论','失败案例','confirmed',90],
+          ['version','版本与使用结果',`知识版本 v3；已被 2 个选题会话引用，尚待真实上线数据验证`,'版本、调用项目与验证状态','知识治理','known',100]
+        ])
+      ];
+    }
+    function buildVideoFields(video){
+      const evidence=`${video.title}成片、字幕与镜头时序演示数据`;
+      const prefix=video.id;
+      return [
+        ...buildFields(prefix,'responsibility',[
+          ['type','视频类型','正片单集',evidence,'视频文件','known',100],
+          ['episode','集号',`第 ${video.episode} 集`,evidence,'剧集目录','known',100],
+          ['previous','前集承接',`承接前集未解决的资源问题，并在首个场景复现其直接后果`,'前集结尾与本集首场对照','前后集','ai',90],
+          ['next','后集开启',`本集结果产生更高层级的新问题，进入下一集而非机械截断`,'本集结尾与后集开场对照','前后集','ai',89],
+          ['goal','本集目标',video.goal,evidence,'全片','confirmed',94],
+          ['information','信息增量',`新增信息围绕“${video.focus}”，并改变人物下一步选择`,'新增事实、关系和认知列表','全片','ai',91],
+          ['change','状态变化',video.change,'开头与结尾的人物资源、关系、认知对照','全片','ai',92]
+        ]),
+        ...buildFields(prefix,'timing',[
+          ['duration','时长',video.duration,'视频文件时长','全片','known',100],
+          ['scenes','场景','3 个场景：工作空间 / 冲突空间 / 结果空间','时空连续性、人物与局部目标切分','全片','ai',91],
+          ['beats','情节节拍','7 个节拍：异常、目标、阻碍、选择、反转、结果、卡点','目标、冲突、信息与情绪变化点','全片','ai',90],
+          ['shots','镜头','26 个镜头；平均镜头时长 3.7 秒','镜头切分与景别识别','全片','ai',88],
+          ['firstframe','首帧','高对比关键证据特写，先建立异常状态','首帧画面与字幕 OCR','00:00','ai',95],
+          ['first3','前 3 秒','展示不可逆结果，并留下与人物命运相关的信息缺口','首帧、关键台词和观众停留变化','00:00–00:03','confirmed',93],
+          ['first30','前 30 秒','0–8 秒建立问题，8–18 秒明确目标，18–30 秒让阻碍和赌注就位','节拍、镜头和台词时序','00:00–00:30','ai',90],
+          ['ending','集尾','完成眼前动作结果，再由结果自然产生下一集问题','最后三个节拍与后集开场','集尾 8 秒','ai',88]
+        ]),
+        ...buildFields(prefix,'drama',[
+          ['goal','人物目标',video.goal,'场景目标和主角行动','全片','confirmed',94],
+          ['obstacle','阻碍','规则限制、人际控制和时间压力同时存在','阻碍出现位置与人物应对','全片','ai',91],
+          ['stakes','赌注','失败将导致资源损失、关系断裂或公开信用下降','人物台词、行动后果和前后状态','全片','ai',89],
+          ['conflict','核心冲突',video.focus,'冲突双方目标、资源和解释权','全片','ai',92],
+          ['hook','钩子','结果前置型钩子：先展示改变命运的结果，再延迟原因','首帧、前 3 秒和评论追问','00:00–00:03','confirmed',93],
+          ['reversal','反转','新证据不改变事实，而是改变事实的解释权','伏笔、证据和反转后行动','情绪峰值前','ai',95],
+          ['payoff','爽点','主角通过专业行动改变谈判位置，群体反应承接情绪释放','动作、台词、声音和评论情绪','情绪峰值','ai',92],
+          ['suspense','悬念','观众知道人物必须选择，但不知道她会牺牲哪种资源','选择前评论与信息差','选择节点','ai',87],
+          ['result','阶段结果',video.change,'结果对人物状态、关系和下一集目标的影响','集尾','ai',90]
+        ]),
+        ...buildFields(prefix,'audiovisual',[
+          ['dialogue','台词','台词负责立场和关系，避免复述画面已经表达的信息','字幕、说话人和台词功能分类','全片','ai',90],
+          ['action','动作','专业动作负责证据和因果推进，关键胜利可追溯到具体操作','动作识别与剧情作用标注','全片','ai',92],
+          ['composition','构图','压迫段使用固定中景，反转后转为近景与视线关系','景别、主体位置和权力构图','全片','ai',86],
+          ['camera','运镜','镜头运动样本部分缺失，待补充原始视频后解析','当前可用镜头运动数据不足','全片','unknown',0],
+          ['visual','视觉风格','低饱和现实空间，以信号色突出证据和状态变化','色彩、光线和场景美术','全片','ai',85],
+          ['sound','音效语言','环境底噪维持现实压力，关键操作使用可识别声音提示','音轨分类与节点对齐','全片','ai',88],
+          ['bgm','BGM','冲突段收弱，反转后抬升，情绪峰值后短暂停止','BGM 能量曲线与剧情节点','全片','ai',87],
+          ['retention','留存表现','前 3 秒稳定，解释段轻微下降，反转与集尾出现复看峰值','秒级留存、复看和快进','行为数据','ai',89],
+          ['comments','代表评论','“这不是打脸，是终于有人把她做过的事说清楚了”','高赞评论及上下文','评论样本','known',100],
+          ['human','人工判断','视听表达有效，但中段解释台词仍可压缩约 4 秒','编剧/导演人工复核记录','人工证据','confirmed',96]
+        ]),
+        ...buildPlatformItems(prefix,'video'),
+        ...buildFields(prefix,'audience',[
+          ['source','来源与上下文','待接入该视频的真实评论区、回复楼、弹幕与采集记录','需要平台、内容链接、时间和采集批次','数据待接入','unknown',0],
+          ['anchor','内容锚点','暂无可核验结论','需要评论原文与视频场景、节拍、人物、台词和时间码','数据待接入','unknown',0],
+          ['emotion','情绪','暂无可核验结论','需要真实评论情绪与剧情节点对齐','数据待接入','unknown',0],
+          ['stance','立场','暂无可核验结论','需要真实评论的赞同、反对与争议分类','数据待接入','unknown',0],
+          ['intent','评论类型','暂无可核验结论','需要真实评论语义分类','数据待接入','unknown',0],
+          ['signal','观众信号簇','暂无可核验结论','需要真实评论去重、聚类、规模与趋势','数据待接入','unknown',0],
+          ['creative','创作价值','暂无可核验结论','需要真实信号的具体性、可迁移性和可执行性评估','数据待接入','unknown',0],
+          ['represent','群体代表性','暂无可核验结论','需要规模、趋势、跨平台一致性与行为印证','数据待接入','unknown',0],
+          ['behavior','行为印证','暂无可核验结论','需要秒级留存、复看、分享与评论时间码','数据待接入','unknown',0],
+          ['quality','质量风险','待数据接入后检查异常账号、控评、互动排序和平台人群偏差','需要原始采集记录与质量审计','数据待接入','unknown',0]
+        ]),
+        ...buildFields(prefix,'knowledge',[
+          ['fact','发生了什么',`首屏先给结果，中段增加阻碍，反转改变解释权，集尾产生新问题`,'场景、节拍和表达原子链','知识提炼链','confirmed',94],
+          ['why','为什么有效','命运相关的信息缺口驱动观看，可见行动改变权力位置后释放情绪','内容结构、评论解释和行为数据','知识提炼链','ai',92],
+          ['reuse','如何迁移','替换人物、资源、规则和代价，保留因果结构而非复制表面桥段','改写变量与同类案例','知识提炼链','ai',91],
+          ['asset','资产类型','钩子规则、证据反转、专业动作、情绪策略和失败反例','知识资产分类','资产库','known',100],
+          ['audience','适用受众','对现实处境、职业价值和关系边界敏感的成熟观众','观众画像和有效案例','案例集合','ai',88],
+          ['tasks','适用任务','选题、单集拆解、前三秒设计、反转、卡点和成稿复核','历史调用记录','调用记录','ai',89],
+          ['conditions','适用条件','结果必须与人物命运相关，证据必须前置，行动必须改变局势','成功案例共同条件','案例集合','ai',91],
+          ['boundary','失效边界','慢启氛围、纯动作奇观或无真实代价的题材不宜直接使用','失败案例和反例评论','反例集合','ai',87],
+          ['variables','改写变量','结果类型、证据来源、规则掌握者、公开代价、见证者关系','迁移试验记录','知识版本','ai',86],
+          ['result','版本与使用结果','规则版本 v2；已被选题助手引用，待真实上线数据验证','版本、审核和调用项目','知识治理','known',100]
+        ])
+      ];
+    }
+    function visibleSeries(){
+      const hidden=new Set(state.creative.hiddenSeriesIds||[]);
+      return state.creative.series.filter(series=>!hidden.has(series.id)||series.id===state.creative.selectedSeries);
+    }
+    function reorderSeries(sourceId,targetId,placeAfter=false){
+      if(!sourceId||!targetId||sourceId===targetId)return;
+      const list=state.creative.series,sourceIndex=list.findIndex(x=>x.id===sourceId);
+      if(sourceIndex<0)return;
+      const [source]=list.splice(sourceIndex,1);
+      const targetIndex=list.findIndex(x=>x.id===targetId);
+      if(targetIndex<0){list.splice(sourceIndex,0,source);return;}
+      list.splice(targetIndex+(placeAfter?1:0),0,source);
+      render();
+      toast('剧目顺序已更新');
+    }
+    function getSeries(){ return state.creative.series.find(x=>x.id===state.creative.selectedSeries) || state.creative.series[0]; }
+    function getContent(){ return state.creative.contents.find(x => x.id === state.ui.selectedContent) || state.creative.contents.find(x=>x.seriesId===getSeries().id) || state.creative.contents[0]; }
+    function getAnalyses(){
+      if(state.creative.scope==='series'){
+        const series=getSeries();
+        const uploaded=refreshUploadedSeriesAnalysis(series);
+        if(uploaded)return uploaded;
+        if(!state.creative.seriesAnalyses[series.id]?.length) state.creative.seriesAnalyses[series.id]=(series.id==='s1'||series.id==='s2')?buildSeriesFields(series):[];
+        return state.creative.seriesAnalyses[series.id];
+      }
+      const content=getContent();
+      if(content.status==='processing'||content.status==='failed') return state.creative.analyses[content.id]||[];
+      if(!state.creative.analyses[content.id]?.length) state.creative.analyses[content.id]=buildVideoFields(content);
+      return state.creative.analyses[content.id];
+    }
+    function getAnalysis(id=state.ui.selectedAnalysis){ return getAnalyses().find(x => x.id === id); }
+    function getSession(){ return state.topics.sessions.find(x => x.id === state.topics.selectedSession) || state.topics.sessions.find(x => !x.archived); }
+    function activeSessions(){ return state.topics.sessions.filter(x => !x.archived); }
+    function statusLabel(status){ return ({known:'已知',ai:'AI 推断',unknown:'未解析',confirmed:'人工确认',edited:'人工已编辑',rejected:'已驳回',review:'待人工审核',ready:'解析完成',processing:'解析中',failed:'解析失败',exploring:'探索中',converging:'收敛中'})[status] || status; }
+    function toast(message,type='success'){
+      clearTimeout(toastTimer);
+      const root = document.getElementById('toast-root');
+      root.innerHTML = `<div class="toast ${type==='error'?'error':''}">${esc(message)}</div>`;
+      toastTimer = setTimeout(() => root.innerHTML='', 2600);
+    }
+    function setModal(html){ document.getElementById('modal-root').innerHTML = html ? `<div class="modal-backdrop">${html}</div>` : ''; }
+    function modalShell(title,body,foot=''){
+      const actions=foot||`<button class="btn" data-action="close-modal">关闭</button>`;
+      return `<section class="modal" role="dialog" aria-modal="true" aria-label="${esc(title)}"><header class="modal-head"><h2>${esc(title)}</h2><button class="btn icon-only" data-action="close-modal" title="关闭">${icon('x')}</button></header><div class="modal-body">${body}</div><footer class="modal-foot">${actions}</footer></section>`;
+    }
+
+    function render(){
+      document.querySelectorAll('.module-tab').forEach(btn => btn.classList.toggle('active',btn.dataset.page === state.ui.page));
+      document.querySelector('.project').innerHTML = `《${esc(getSeries().title)}》 <span class="pill">Qwen MVP</span><span class="pill demo">本地运行</span>`;
+      document.getElementById('app').innerHTML = state.ui.page === 'creative' ? renderCreative() : renderTopics();
+      hydrateIcons();
+      if (state.ui.page === 'topics') requestAnimationFrame(() => { const log=document.querySelector('.chat-log'); if(log) log.scrollTop=log.scrollHeight; });
+      persist();
+    }
+    function hydrateIcons(root=document){ root.querySelectorAll('[data-icon]').forEach(el => el.innerHTML=icon(el.dataset.icon)); }
+
+    function renderCreative(){
+      const series=getSeries(), content=getContent();
+      return `
+        <div class="page-titlebar"><div><h1>创意库</h1><div class="subtle">上传单集视频，由 Qwen 理解画面与声音，输出完整元数据供人工审核。</div></div><span class="pill demo">结果保存在本机 JSON</span></div>
+        ${renderObjectSwitcher(series,content)}
+        <div class="workspace creative-workspace">
+          <aside class="panel sticky content-object-panel">
+            ${renderSectionDirectory()}
+            <div class="panel-head"><strong>内容对象</strong><span class="tiny subtle">当前 1 部 · ${state.creative.contents.filter(x=>x.seriesId===series.id).length} 个视频</span></div>
+            <div class="panel-body content-object-body">
+              <div class="content-object-toolbar"><button class="btn primary" data-action="open-upload">${icon('upload')}导入新内容</button><button class="btn icon-only" data-action="open-series-manager" title="管理剧目显示与新增">${icon('library')}</button></div>
+              <div class="content-list" data-series-list>${renderSeriesGroup(series)}</div>
+              <div class="divider"></div>
+              <div class="tiny subtle">在上方剧目筛选框切换其他剧；集列表可纵向滚动和拉伸。视频仅发送给你配置的 Qwen API。</div>
+            </div>
+          </aside>
+          <section class="panel center-column">${state.creative.scope==='series'?renderSeriesCanvas(series):renderVideoCanvas(content,series)}</section>
+          <aside class="panel sticky right-column">${renderAnalysisDashboard()}</aside>
+        </div>`;
+    }
+    function renderObjectSwitcher(series,content){
+      const videos=state.creative.contents.filter(x=>x.seriesId===series.id);
+      return `<div class="object-switcher">
+        <div class="segmented" aria-label="素材分析类型"><button class="segment ${state.creative.scope==='series'?'active':''}" data-action="switch-scope" data-scope="series">整剧分析</button><button class="segment ${state.creative.scope==='video'?'active':''}" data-action="switch-scope" data-scope="video">单视频分析</button><button class="segment" data-action="novel-placeholder" title="小说分析暂未开放">小说分析</button></div>
+        <select class="object-select" id="series-select" aria-label="筛选剧目">${state.creative.series.map(x=>{const view=seriesPresentation(x);return `<option value="${x.id}" ${x.id===series.id?'selected':''}>${esc(view.title)}｜${esc(view.format)}</option>`;}).join('')}</select>
+        ${state.creative.scope==='video'?`<span class="subtle">→</span><select class="object-select grow" id="video-select" aria-label="选择视频">${videos.map(x=>`<option value="${x.id}" ${x.id===content.id?'selected':''}>${episodeLabel(x)}｜${esc(x.title)}｜${esc(x.duration)}</option>`).join('')}</select>`:`<div class="grow tiny subtle">${uploadedSeriesVideos(series).length?'当前只汇总已上传视频，未上传部分不推断':'当前呈现该剧的项目级分析'}</div>`}
+      </div>`;
+    }
+    function renderSeriesGroup(series){
+      const videos=state.creative.contents.filter(x=>x.seriesId===series.id);
+      const activeSeries=series.id===state.creative.selectedSeries;
+      const height=Math.max(104,Math.min(380,Number(state.creative.seriesHeights?.[series.id])||180));
+      return `<section class="series-group" data-series-id="${series.id}"><div class="series-header"><button class="series-node ${activeSeries&&state.creative.scope==='series'?'active':''}" data-action="select-series" data-id="${series.id}">${icon('library')}<strong>${esc(series.title)}</strong><span class="pill">${videos.length}</span></button></div><div class="video-children" data-series-id="${series.id}" style="height:${height}px">${videos.length?videos.map(item=>`<button class="video-node ${item.id===state.ui.selectedContent&&state.creative.scope==='video'?'active':''}" data-action="select-video" data-id="${item.id}"><span class="video-thumb">${episodeLabel(item)}</span><span><span class="item-title">${esc(item.title)}</span><span class="item-meta">${esc(item.duration)} · <span class="status ${item.status==='processing'?'processing':item.status==='failed'?'failed':item.status==='review'?'pending':'confirmed'}">${statusLabel(item.status)}</span></span></span></button>`).join(''):'<div class="series-empty">尚未上传视频</div>'}</div></section>`;
+    }
+    function renderSectionDirectory(){
+      return `<nav class="section-directory" aria-label="分析目录"><div class="section-directory-head"><strong>分析目录</strong><span class="tiny subtle">点击定位</span></div><div class="section-directory-list">${metadataSectionDefinitions().map(([category,title],index)=>`<button class="section-anchor" data-action="jump-section" data-category="${category}">${index+1}. ${esc(title)}</button>`).join('')}</div></nav>`;
+    }
+    function analysisTabs(){
+      return state.creative.scope==='series'?[['positioning','定位与创意'],['world','人物与世界'],['narrative','叙事系统'],['retention','留人与收束'],['audience','观众洞察'],['knowledge','知识提炼']]:[['responsibility','叙事职责'],['timing','时间结构'],['drama','戏剧机制'],['audiovisual','视听效果'],['audience','观众反馈'],['knowledge','知识提炼']];
+    }
+    function renderSeriesCanvas(series){
+      const analyses=getAnalyses();
+      const uploaded=uploadedSeriesVideos(series),view=seriesPresentation(series);
+      const coverage=uploaded.length?`基于 ${uploaded.length} 个已上传视频：${uploaded.map(episodeLabel).join('、')}；未上传部分不推断。`:'Series / Project · 剧级对象';
+      return `
+        <div class="panel-head"><div><strong>整剧分析</strong><div class="tiny subtle">${esc(coverage)}</div></div><span class="status ${series.status==='review'?'pending':'confirmed'}">${statusLabel(series.status)}</span></div>
+        <div class="series-hero"><div class="series-poster ${view.tone==='green'?'green':''}">${esc(view.title)}</div><div class="series-copy"><div class="row wrap"><span class="pill">${esc(view.genre)}</span><span class="pill demo">${esc(view.orientation)}</span><span class="status ${uploaded.length?'unknown':'confirmed'}">时代母题 · ${esc(view.theme)}</span></div><h2>${esc(view.title)}</h2><p>${esc(view.logline)}</p><div class="meta-pairs"><span class="meta-pair">平台 <b>${esc(view.platform)}</b></span><span class="meta-pair">形态 <b>${esc(view.format)}</b></span><span class="meta-pair">受众 <b>${esc(view.audience)}</b></span><span class="meta-pair">情绪 <b>${esc(view.emotion)}</b></span></div></div></div>
+        <div class="pipeline">${uploaded.length?`<div class="pipe-step done">已上传 ${uploaded.length} 集</div><div class="pipe-step done">单视频结果已汇总</div><div class="pipe-step">整剧结论待补充</div>`:`<div class="pipe-step done">整剧与剧本就绪</div><div class="pipe-step done">剧级结构拆解</div><div class="pipe-step">人工确认中</div>`}<div class="pipe-step ${analyses.some(x=>x.status==='confirmed'||x.status==='edited')?'done':''}">知识可调用</div></div>
+        <div class="analysis-area all-metadata">${renderAllMetadata(analyses)}</div>`;
+    }
+    function renderVideoCanvas(content,series){
+      const analyses=getAnalyses();
+      const header=`<div class="panel-head"><div><strong>${esc(series.title)}｜${esc(content.title)}</strong><div class="tiny subtle">Video · ${esc(content.source)} · ${esc(content.genre)} · ${esc(content.duration)}</div></div><div class="row">${content.analysisJobId?`<button class="btn" data-action="download-analysis" title="下载本地分析结果">${icon('file')}导出 JSON</button>`:''}<button class="btn" data-action="play-preview">${icon('play')}预览片段</button></div></div>`;
+      if(content.status==='processing') return `${header}<div class="job-state"><div class="job-state-inner"><div class="job-symbol">${icon('spark')}</div><h2>Qwen 正在解析视频</h2><p class="subtle">${esc(content.stage||'模型正在理解画面、声音与叙事结构')}</p><div class="job-progress"><span style="width:${Number(content.progress)||0}%"></span></div><div class="row between tiny"><span>${esc(content.sourceFile||content.title)}</span><strong>${Number(content.progress)||0}%</strong></div><p class="tiny subtle" style="margin-top:16px">请保持本地服务运行。解析完成后，本页会自动展示全部元数据、分镜时序和情绪曲线。</p></div></div>`;
+      if(content.status==='failed') return `${header}<div class="job-state"><div class="job-state-inner"><div class="job-symbol">${icon('x')}</div><h2>解析未完成</h2><div class="job-error">${esc(content.error||'模型请求失败，请检查配置或网络后重试。')}</div><button class="btn primary" data-action="retry-job">${icon('refresh')}重新解析</button></div></div>`;
+      return `${header}${renderVideoOverview(content,series)}
+        <div class="preview"><div class="scene"><div class="scene-wall"></div><div class="scene-screen"></div><div class="person one"></div><div class="person two"></div><div class="scene-table"></div><div class="caption">${esc(content.focus)}：状态变化发生在可见行动之后。</div></div><div class="preview-info"><span class="pill">${esc(content.duration)}</span><span class="pill">第 ${content.episode} 集</span></div><div class="play"><button data-action="play-preview" title="播放预览">${icon('play')}</button></div></div>
+        <div class="pipeline"><div class="pipe-step done">视频与字幕就绪</div><div class="pipe-step done">场景 / 节拍 / 原子</div><div class="pipe-step">评论与行为锚定</div><div class="pipe-step ${analyses.some(x=>x.status==='confirmed'||x.status==='edited')?'done':''}">知识可调用</div></div>
+        <div class="analysis-area all-metadata">${renderAllMetadata(analyses)}</div>`;
+    }
+    function renderVideoOverview(content,series){
+      return `<section class="video-overview"><div class="video-overview-head"><div><strong>视频基础信息</strong><div class="tiny subtle">AI 解析结果可人工修改；剧名可改选已有剧或新建</div></div><button class="btn" data-action="edit-video-overview">${icon('edit')}编辑</button></div><div class="video-overview-grid"><div class="video-overview-item"><span>剧名</span><strong>${esc(content.seriesTitle||series.title)}</strong></div><div class="video-overview-item"><span>集数</span><strong>第 ${esc(content.episode)} 集</strong></div><div class="video-overview-item"><span>视频类型</span><strong>${esc(content.videoType||'待确认')}</strong></div><div class="video-overview-item"><span>集标题</span><strong>${esc(content.title)}</strong></div><div class="video-overview-item"><span>时长 / 平台</span><strong>${esc(content.duration)} · ${esc(content.source)}</strong></div><div class="video-overview-item wide"><span>本集目标</span>${esc(content.goal)}</div><div class="video-overview-item wide"><span>状态变化</span>${esc(content.change)}</div><div class="video-overview-item wide"><span>分析重点</span>${esc(content.focus)}</div><div class="video-overview-item wide"><span>题材</span>${esc(content.genre)}</div></div></section>`;
+    }
+    function metadataSectionDefinitions(){
+      return state.creative.scope==='series'?
+        [['positioning','定位与创意','题材、市场、受众、形态与核心创意'],['world','人物与世界','人物、关系、成长弧、势力与世界规则'],['narrative','叙事系统','主支线、冲突、阶段目标、版本与因果'],['retention','留人与收束','神秘、伏笔、揭晓、终局与表现风格'],['audience','观众洞察','评论锚定、信号簇、双轴价值与行为印证'],['knowledge','知识提炼','事实、机制、迁移、边界、反例与使用结果']]:
+        [['responsibility','叙事职责','类型、承接、目标、信息增量与状态变化'],['timing','时间结构','场景、节拍、镜头、首帧、前三秒与集尾'],['drama','戏剧机制','目标、阻碍、赌注、钩子、反转、爽点与悬念'],['audiovisual','视听效果','台词、动作、构图、运镜、声音与留存'],['audience','观众反馈','来源、锚点、情绪、立场、信号与质量风险'],['knowledge','知识提炼','事实、机制、迁移、条件、边界与版本']];
+    }
+    function visibleSectionItems(category,items){
+      if(category==='world' && state.creative.scope==='series') return items.filter(x=>x.entityType || !['核心人物','角色类型','人物关系','成长弧','势力阵营'].includes(x.title));
+      return items;
+    }
+    function renderSectionHead(category,title,description,index,items){
+      const confirmed=items.filter(x=>x.status==='confirmed'||x.status==='edited').length;
+      const pending=items.filter(x=>x.status==='ai').length;
+      const unknown=items.filter(x=>x.status==='unknown').length;
+      return `<summary class="metadata-section-head"><span class="section-index">${index+1}</span><span class="section-title">${title}</span><span class="tiny subtle">${description}</span><span class="section-stats"><span class="pill">${items.length} 项</span><span class="status confirmed">人工确认 ${confirmed}</span><span class="status pending">待审核 ${pending}</span>${unknown?`<span class="status unknown">未解析 ${unknown}</span>`:''}<button class="section-review-btn" data-action="confirm-section" data-category="${category}" ${pending?'':'disabled'}>${icon('check')}一键审核</button></span></summary>`;
+    }
+    function renderAllMetadata(analyses){
+      return metadataSectionDefinitions().map(([category,title,description],index)=>{
+        const items=visibleSectionItems(category,analyses.filter(x=>x.category===category));
+        let body=renderMetadataTable(items);
+        if(category==='world' && state.creative.scope==='series') body=renderWorldSection(items);
+        if(category==='timing' && state.creative.scope==='video') body=renderTimingSection(items);
+        if(category==='audience') body=renderAudienceSection(items);
+        if(category==='knowledge') body=renderKnowledgeSection(items);
+        return `<details class="metadata-section" id="metadata-${category}" open>${renderSectionHead(category,title,description,index,items)}${body}</details>`;
+      }).join('');
+    }
+    function renderMetadataTable(items){
+      return `<div class="metadata-table"><div class="metadata-table-head"><div>元数据字段</div><div>AI 解析值</div><div>状态 / 置信度</div><div>证据范围</div><div>字段操作</div></div>${items.map(renderMetadataRow).join('')}</div>`;
+    }
+    function renderItemActions(item,className='card-actions'){
+      const reviewed=item.status==='confirmed'||item.status==='edited';
+      const removable=['character','faction','worldElement'].includes(item.entityType);
+      return `<div class="${className}"><button data-action="review-discuss" data-id="${item.id}" title="与 AI 讨论">${icon('message')}</button><button data-action="review-edit" data-id="${item.id}" title="人工编辑">${icon('edit')}</button><button data-action="review-confirm" data-id="${item.id}" title="${item.status==='unknown'?'需先补充数据或人工编辑':'确认字段'}" ${reviewed||item.status==='unknown'?'disabled':''}>${icon('check')}</button><button data-action="review-reject" data-id="${item.id}" title="驳回字段" ${item.status==='rejected'?'disabled':''}>${icon('x')}</button>${removable?`<button data-action="delete-world-entity" data-id="${item.id}" title="删除这项">${icon('trash')}</button>`:''}</div>`;
+    }
+    function renderMetadataRow(item){
+      return `<div class="metadata-row ${item.id===state.ui.selectedAnalysis?'active':''}" data-action="select-analysis" data-id="${item.id}" data-status="${item.status}"><div class="metadata-cell field-name">${esc(item.title)}</div><div class="metadata-cell field-value">${esc(item.summary)}</div><div class="metadata-cell field-state"><span class="status ${item.status}">${statusLabel(item.status)}</span>${item.status==='ai'?`<span class="tiny subtle">置信度 ${item.confidence}%</span>`:''}</div><div class="metadata-cell field-evidence"><strong>${esc(item.time)}</strong>${esc(item.evidence)}</div><div class="metadata-cell field-actions">${renderItemActions(item,'card-actions')}</div></div>`;
+    }
+    function buildStoryboardRows(video){
+      if(Array.isArray(video.storyboard)&&video.storyboard.length){
+        return video.storyboard.map(row=>[row.timestamp,row.shot,row.audio,row.visual,row.dialogue,row.story_intensity,row.audience_emotion]);
+      }
+      const lead=video.seriesId==='s1'?'林岚':'许策';
+      return [
+        ['00:00–00:03','特写 / 快速推近','硬盘接入声；低频鼓点','关键证据先出现在画面中央，异常状态立即成立',`${lead}：这不是流程失误。`,'中 → 高','疑惑 → 紧张'],
+        ['00:03–00:18','中景横移 / 扫过人群','空间底噪；BGM 收弱',`${lead}走到冲突空间，其他人物主动让出或封锁视线`,`${lead}：我只问，这份记录是谁改的？`,'高 → 中','紧张 → 压抑'],
+        ['00:18–00:36','双人近景 / 轻微前推','无 BGM；纸张与键盘声','对手否认责任，并把问题重新定义为程序或权限问题','对手：系统记录不能证明个人贡献。','中 → 高','压抑 → 愤怒'],
+        ['00:36–00:54','固定镜头 / 反应切换','心跳音渐入','关键人物短暂停顿，暴露信息差与关系裂缝',`${lead}：那就把原始版本放出来。`,'高 → 中','愤怒 → 期待'],
+        ['00:54–01:12','手机与屏幕交叉特写','提示音；BGM 抬升','新证据出现并改变解释权，群体反应承接情绪释放','证人：原始文件保留了完整修改记录。','中 → 峰值','期待 → 解气'],
+        ['01:12–集尾','近景 / 缓慢拉远','BGM 短停后恢复','眼前结果落地，但由结果自然产生下一集的新问题',`${lead}：我不要道歉，我要它留下名字。`,'峰值 → 高','解气 → 笃定']
+      ];
+    }
+    function renderTimingSection(items){
+      const rows=buildStoryboardRows(getContent());
+      return `${renderMetadataTable(items)}<div class="storyboard-wrap"><div class="storyboard-head"><div><strong>分镜时序详表</strong><div class="tiny subtle">AI 拆解示例，待接入真实视频后逐镜核验</div></div><span class="pill">${rows.length} 个时序段</span></div><div class="storyboard-scroll"><table class="storyboard-table"><thead><tr><th>时间戳</th><th>景别与运镜</th><th>音效语言 / BGM</th><th>画面视觉描述</th><th>台词</th><th>世界线剧情强度</th><th>观众情绪</th></tr></thead><tbody>${rows.map(row=>`<tr>${row.map(cell=>`<td>${esc(cell)}</td>`).join('')}</tr>`).join('')}</tbody></table></div></div>`;
+    }
+    function renderWorldSection(items){
+      const characters=items.filter(x=>x.entityType==='character');
+      const relation=items.find(x=>x.entityType==='relationship');
+      const factions=items.filter(x=>x.entityType==='faction');
+      const notices=items.filter(x=>x.entityType==='worldNotice');
+      const world=items.filter(x=>x.entityType==='worldElement'||!x.entityType);
+      const points=characters.map((_,index)=>{const angle=(Math.PI*2*index/Math.max(1,characters.length))-Math.PI/2;return [350+Math.cos(angle)*250,140+Math.sin(angle)*92];});
+      const characterIndex=Object.fromEntries(characters.map((item,index)=>[item.title,index]));
+      const graph=relation&&characters.length>1?`<div class="relationship-panel ${relation.id===state.ui.selectedAnalysis?'active':''}" data-status="${relation.status}"><div class="zone-head"><div><strong>人物关系网</strong><div class="tiny subtle">与角色档案联动，可单独编辑关系</div></div><div class="row"><span class="status ${relation.status}">${statusLabel(relation.status)}</span>${renderItemActions(relation)}</div></div><svg class="relationship-graph" viewBox="0 0 700 280" role="img" aria-label="人物关系网络">${(relation.details?.edges||[]).map((edge,index)=>{const a=characterIndex[edge.from]??index%characters.length,b=characterIndex[edge.to]??(index+1)%characters.length,p1=points[a],p2=points[b];return `<line class="${edge.tone==='ally'?'ally':''}" x1="${p1[0]}" y1="${p1[1]}" x2="${p2[0]}" y2="${p2[1]}"></line><text class="edge-label" x="${(p1[0]+p2[0])/2}" y="${(p1[1]+p2[1])/2-5}" text-anchor="middle">${esc(edge.label)}</text>`;}).join('')}${characters.map((item,index)=>{const p=points[index];return `<circle cx="${p[0]}" cy="${p[1]}" r="29"></circle><text class="node-label" x="${p[0]}" y="${p[1]+5}">${esc(item.title)}</text>`;}).join('')}</svg></div>`:'';
+      const toolbar=`<div class="world-toolbar"><button class="btn" data-action="add-world-entity" data-kind="character">${icon('plus')}新增角色</button><button class="btn" data-action="add-world-entity" data-kind="faction">${icon('plus')}新增阵营</button><button class="btn" data-action="add-world-entity" data-kind="worldElement">${icon('plus')}新增世界观要素</button>${uploadedSeriesVideos(getSeries()).length?`<button class="btn" data-action="reanalyze-world">${icon('spark')}补充解析人物与世界</button>`:''}</div>`;
+      const notice=notices.length?`<div class="world-notice"><strong>背景完整度提示</strong><div class="tiny" style="margin-top:4px">${esc(notices.map(item=>item.summary).join('；'))}</div></div>`:'';
+      const characterCards=characters.length?characters.map(item=>`<article class="character-card ${item.id===state.ui.selectedAnalysis?'active':''}" data-action="select-analysis" data-id="${item.id}" data-status="${item.status}"><div class="row between"><div><div class="character-name">${esc(item.title)}</div><div class="row wrap"><span class="tiny subtle">${esc(item.details.role)} · ${esc(item.details.faction)}</span><span class="status ${item.status}">${statusLabel(item.status)}</span>${item.details.mergePending?'<span class="status pending">待合并确认</span>':''}</div></div>${renderItemActions(item)}</div><div class="character-fields"><div class="character-field"><span>成长弧</span>${esc(item.details.arc)}</div><div class="character-field"><span>表层目标</span>${esc(item.details.surface)}</div><div class="character-field"><span>深层目标</span>${esc(item.details.deep)}</div><div class="character-field"><span>反差</span>${esc(item.details.contrast)}</div><div class="character-field"><span>真实弱点</span>${esc(item.details.weakness)}</div><div class="character-field"><span>视觉锚点</span>${esc(item.details.visual)}</div></div><div class="tiny subtle" style="margin-top:7px">首次出现：${esc(item.details.firstSeen||item.time)} · 来源：${esc((item.details.sourceEpisodes||[]).join('、')||item.time)}</div></article>`).join(''):'<div class="empty">背景信息不全，尚未建立角色档案。只要视频中有人物出场，专项解析后会以姓名或女A、男B等代号分别建档。</div>';
+      return `<div class="character-zone">${notice}${toolbar}<div class="zone-head"><div><strong>角色档案</strong><div class="tiny subtle">逐人核实 AI 识别结果，编辑后同步关系网</div></div><span class="pill">${characters.length} 人</span></div><div class="character-grid">${characterCards}</div>${graph}<div class="world-fields"><div class="zone-head"><div><strong>势力阵营</strong><div class="tiny subtle">以阵营为单位核实定位、特征、目标、资源与约束</div></div><span class="pill">${factions.length} 个阵营</span></div><div class="faction-list">${factions.length?factions.map(item=>`<article class="faction-strip ${item.id===state.ui.selectedAnalysis?'active':''}" data-action="select-analysis" data-id="${item.id}" data-status="${item.status}"><div><div class="faction-title">${esc(item.title)}</div><div class="row wrap" style="margin-top:5px"><span class="status ${item.status}">${statusLabel(item.status)}</span><span class="tiny subtle">${esc(item.details.position)}</span></div></div><div class="faction-fields"><div class="faction-field"><span>特征与设定</span>${esc(item.details.traits)}</div><div class="faction-field"><span>核心目标</span>${esc(item.details.goal)}</div><div class="faction-field"><span>资源与能力</span>${esc(item.details.resources)}</div><div class="faction-field"><span>约束与弱点</span>${esc(item.details.constraints)}</div></div>${renderItemActions(item)}</article>`).join(''):'<div class="empty">当前视频尚不足以确认势力阵营，可人工新增或等待更多剧集。</div>'}</div></div><div class="world-fields"><div class="zone-head"><div><strong>世界观要素</strong><div class="tiny subtle">阶层、规则、资源、禁忌与基本矛盾</div></div></div>${world.length?renderMetadataTable(world):'<div class="empty">当前视频尚不足以确认世界观要素，可人工新增或等待更多剧集。</div>'}</div></div>`;
+    }
+    function renderAudienceSection(items){
+      const platforms=items.filter(x=>x.entityType==='platform');
+      const synthesis=items.filter(x=>x.entityType!=='platform');
+      return `<div class="audience-zone"><div class="zone-head"><div><strong>分平台观众信号</strong><div class="tiny subtle">平台口径独立呈现；没有可核验来源时不生成指标</div></div></div><div class="platform-grid">${platforms.map(item=>`<article class="platform-card ${item.id===state.ui.selectedAnalysis?'active':''}" data-action="select-analysis" data-id="${item.id}" data-status="${item.status}"><div class="row between"><div><strong>${esc(item.title)}</strong><span class="status ${item.status}" style="margin-left:6px">${statusLabel(item.status)}</span></div>${renderItemActions(item)}</div><div class="evidence" style="margin-top:10px"><strong>${esc(item.details.source)}</strong><div style="margin-top:4px">${esc(item.details.note)}</div></div><div class="tiny subtle" style="margin-top:9px">接入数据后分析</div><div class="emotion-tags">${item.details.fields.map(x=>`<span class="pill">${esc(x)}</span>`).join('')}</div></article>`).join('')}</div><div class="world-fields"><div class="zone-head"><div><strong>跨平台综合判断</strong><div class="tiny subtle">共性信号、价值判断与样本风险</div></div></div>${renderMetadataTable(synthesis)}</div></div>`;
+    }
+    function renderKnowledgeSection(items){
+      const kind=item=>item.id.endsWith('knowledge-fact')?'事实':item.id.endsWith('knowledge-why')?'机制':item.id.endsWith('knowledge-reuse')?'迁移':'知识资产';
+      return `<div class="knowledge-zone"><div class="zone-head"><div><strong>可迁移知识条目</strong><div class="tiny subtle">按事实、机制、迁移、条件与边界逐条审核</div></div><span class="pill">${items.length} 条</span></div><div class="knowledge-list">${items.map(item=>`<article class="knowledge-strip ${item.id===state.ui.selectedAnalysis?'active':''}" data-action="select-analysis" data-id="${item.id}" data-status="${item.status}"><div class="knowledge-kind">${kind(item)}</div><div><strong>${esc(item.title)}</strong><div style="margin-top:5px"><span class="status ${item.status}">${statusLabel(item.status)}</span></div></div><div class="knowledge-copy"><p>${esc(item.summary)}</p></div><div class="knowledge-evidence"><strong>${esc(item.time)}</strong>${esc(item.evidence)}</div>${renderItemActions(item)}</article>`).join('')}</div></div>`;
+    }
+    function renderAnalysisNavigation(analyses){ return `<nav class="analysis-tabs">${analysisTabs().map(([id,label])=>`<button class="analysis-tab ${state.ui.analysisTab===id?'active':''}" data-action="analysis-tab" data-tab="${id}">${label}<span class="tiny"> ${analyses.filter(x=>x.category===id).length||''}</span></button>`).join('')}</nav>`; }
+    function renderAnalysisTab(items){
+      if (!items.length) return `<div class="empty">该对象暂未配置此维度的分析结果。</div>`;
+      const confirmed=getAnalyses().filter(x=>x.status==='confirmed'||x.status==='edited').length;
+      const avg=Math.round(getAnalyses().reduce((s,x)=>s+x.confidence,0)/getAnalyses().length);
+      const isTime=state.ui.analysisTab==='timing';
+      return `<div class="analysis-summary"><div class="summary-stat"><span class="tiny subtle">当前维度</span><strong>${items.length} 项</strong></div><div class="summary-stat green"><span class="tiny subtle">人工确认</span><strong>${confirmed} 项</strong></div><div class="summary-stat yellow"><span class="tiny subtle">平均置信度</span><strong>${avg}%</strong></div><div class="summary-stat"><span class="tiny subtle">证据状态</span><strong>可追溯</strong></div></div>
+        ${isTime?`<div class="timeline">${items.map(item=>`<div class="timeline-item ${item.id===state.ui.selectedAnalysis?'active':''}" data-action="select-analysis" data-id="${item.id}"><div class="timecode">${esc(item.time.split('–')[0])}</div><div class="timeline-line"></div><div class="timeline-content"><div class="row between"><strong>${esc(item.title)}</strong><span class="status ${item.status}">${statusLabel(item.status)}</span></div><div class="subtle" style="margin-top:4px">${esc(item.summary)}</div></div></div>`).join('')}</div>`:`<div class="analysis-grid">${items.map(renderAnalysisCard).join('')}</div>`}`;
+    }
+    function renderAnalysisCard(item){
+      return `<article class="analysis-card ${item.id===state.ui.selectedAnalysis?'active':''}" data-action="select-analysis" data-id="${item.id}"><div class="row wrap"><span class="status ${item.status}">${statusLabel(item.status)}</span><strong>${esc(item.title)}</strong></div><span class="confidence">${item.confidence}%</span><p>${esc(item.summary)}</p>${item.meta?.length?`<div class="meta-pairs">${item.meta.map(([k,v])=>`<span class="meta-pair">${esc(k)} <b>${esc(v)}</b></span>`).join('')}</div>`:''}</article>`;
+    }
+    function renderEmotionCurve(){
+      const series=state.creative.scope==='series';
+      const realCurve=!series?getContent().emotionCurve:null;
+      const uploadedCurve=series?uploadedSeriesEmotionCurve(getSeries()):null;
+      const hasUploadedSeries=series&&uploadedSeriesVideos(getSeries()).length;
+      if(hasUploadedSeries&&!uploadedCurve)return `<div class="curve-card"><div class="row between"><strong>观众情绪—剧情时间曲线</strong><span class="status unknown">未解析</span></div><div class="empty">已上传视频暂未返回可用曲线，不生成演示数据。曲线应由 AI 理解剧情时序后绘制，而不是读取评论。</div></div>`;
+      const curve=realCurve||uploadedCurve;
+      const values=curve?.values?.length?curve.values:(series?[38,55,34,67,46,88,76]:[43,68,36,31,47,94,82]);
+      const labels=curve?.labels?.length?curve.labels:(series?['1集','12集','24集','36集','48集','60集','72集']:['0s','3s','18s','36s','54s','72s','96s']);
+      const reasons=curve?.reasons?.length?curve.reasons:(series?['主角被抹去署名，观众先建立压抑感','第一次主动举证，情绪由压抑转向期待','现实代价出现，短暂回落为担忧','团队完成首次交付，信心明显上升','内部信任破裂，观众重新进入焦虑','公开证据改变权力位置，形成全剧峰值','终局建立新规则，峰值回落为笃定']:['异常结果前置，观众产生疑问','目标与证据出现，期待迅速上升','规则压制成立，情绪跌入压抑','对手否认责任，愤怒但尚未释放','主角要求公开原始版本，期待回升','证据完成反转，观众获得最大解气','新规则诉求落地，情绪转为笃定']);
+      const step=values.length>1?255/(values.length-1):255;
+      const points=values.map((value,index)=>({x:22+index*step,y:145-Number(value)*1.12,value,label:labels[index]}));
+      const title=curve?.title||(series?'观众情绪—集数曲线':'观众情绪—时间曲线');
+      const curveTarget=series?'retention':'timing';
+      return `<div class="curve-card" data-action="jump-section" data-category="${curveTarget}" title="查看剧情时序依据"><div class="row between"><strong>${esc(title)}</strong><span class="tiny subtle">依据剧情内容的 AI 定性预测</span></div><svg class="emotion-curve" viewBox="0 0 300 185" role="img" aria-label="观众情绪变化曲线"><text class="curve-label" x="2" y="34">相对高</text><text class="curve-label" x="2" y="139">相对低</text><line class="curve-grid" x1="20" y1="30" x2="282" y2="30"></line><line class="curve-grid" x1="20" y1="82" x2="282" y2="82"></line><line class="curve-grid" x1="20" y1="135" x2="282" y2="135"></line><polyline class="curve-line" points="${points.map(p=>`${p.x},${p.y}`).join(' ')}"></polyline>${points.map((p,index)=>{const tx=index<4?p.x+6:p.x-145,ty=Math.max(3,p.y-58);return `<g class="curve-node" tabindex="0"><title>${esc(`${p.label}：${reasons[index]}`)}</title><circle class="curve-point" cx="${p.x}" cy="${p.y}" r="5"></circle><foreignObject class="curve-tooltip" x="${tx}" y="${ty}" width="142" height="55"><div xmlns="http://www.w3.org/1999/xhtml" class="curve-tooltip-box"><strong>${esc(p.label)}</strong><br>${esc(reasons[index])}</div></foreignObject></g><text class="curve-label" x="${p.x}" y="176" text-anchor="middle">${p.label}</text>`;}).join('')}</svg><div class="tiny subtle">曲线由 AI 理解画面、声音和剧情时序后绘制，只表达可能的相对起伏；不读取评论来绘制，也不代表播放、留存等真实指标。悬浮数据点可查看变化原因。</div></div>`;
+    }
+    function renderedAnalysisItems(){
+      const all=getAnalyses();
+      return metadataSectionDefinitions().flatMap(([category])=>visibleSectionItems(category,all.filter(x=>x.category===category)));
+    }
+    function renderAnalysisDashboard(){
+      const content=state.creative.scope==='video'?getContent():null;
+      if(content&&(content.status==='processing'||content.status==='failed')){
+        const failed=content.status==='failed';
+        return `<div class="panel-head"><div><strong>解析任务</strong><div class="tiny subtle">${esc(content.sourceFile||content.title)}</div></div><span class="status ${failed?'failed':'processing'}">${statusLabel(content.status)}</span></div><div class="panel-body"><div class="audit-metric"><strong>${Number(content.progress)||0}%</strong><span class="tiny subtle">${esc(content.stage||'等待处理')}</span></div>${failed?`<div class="job-error">${esc(content.error||'解析失败')}</div><button class="btn primary block" data-action="retry-job">${icon('refresh')}重新解析</button>`:`<div class="job-progress"><span style="width:${Number(content.progress)||0}%"></span></div><p class="tiny subtle">任务状态会自动刷新。视频越长，等待时间通常越长。</p>`}</div>`;
+      }
+      const items=renderedAnalysisItems();
+      const unknown=items.filter(x=>x.status==='unknown').length;
+      const reviewed=items.filter(x=>x.status==='confirmed'||x.status==='edited').length;
+      const parsed=items.length-unknown;
+      const known=items.filter(x=>x.status==='known').length;
+      return `<div class="panel-head"><div><strong>解析与审核看板</strong><div class="tiny subtle">${state.creative.scope==='series'?'整剧':'单视频'}元数据覆盖</div></div><span class="pill">${items.length} 项</span></div><div class="panel-body dashboard-body">
+        ${renderEmotionCurve()}
+        <div><div class="zone-head"><strong>元数据状态</strong><span class="tiny subtle">点击定位</span></div><div class="audit-metrics"><button class="audit-metric" data-action="jump-status" data-status="parsed"><strong>${parsed}</strong><span class="tiny subtle">AI 已解析</span></button><button class="audit-metric" data-action="jump-status" data-status="unknown"><strong>${unknown}</strong><span class="tiny subtle">未解析</span></button><button class="audit-metric" data-action="jump-status" data-status="reviewed"><strong>${reviewed}</strong><span class="tiny subtle">人工已审核</span></button></div><div class="tiny subtle" style="margin-top:6px">其中 ${known} 项来自原始资料直接识别，不需要 AI 推断。</div></div>
+        <div><div class="zone-head"><strong>分模块审核进度</strong><span class="tiny subtle">点击跳转</span></div><div class="module-progress-list">${metadataSectionDefinitions().map(([category,title])=>{const list=visibleSectionItems(category,getAnalyses().filter(x=>x.category===category)),done=list.filter(x=>x.status==='confirmed'||x.status==='edited').length,percent=list.length?Math.round(done/list.length*100):0;return `<button class="module-progress" data-action="jump-section" data-category="${category}"><div class="row between"><span>${title}</span><strong>${done}/${list.length}</strong></div><div class="signal-bar"><span style="width:${percent}%"></span></div></button>`;}).join('')}</div></div>
+      </div>`;
+    }
+    function renderReview(){
+      const item=getAnalysis();
+      if (!item) return `<div class="panel-head"><strong>AI 解析与人工审核</strong></div><div class="review-empty">在中栏选择一条分析结论，查看证据并进行人工判断。</div>`;
+      const isCallable=item.status==='confirmed'||item.status==='edited';
+      return `<div class="panel-head"><strong>AI 解析与人工审核</strong><span class="status ${item.status}">${statusLabel(item.status)}</span></div><div class="panel-body review-body">
+        <div class="full"><div class="tiny subtle">${state.creative.scope==='series'?'整剧结论':'单视频结论'} · ${esc(getSeries().title)}</div><div class="review-title">${esc(item.title)}</div></div>
+        <div class="confidence-block full"><div class="row between"><span>AI 置信度</span><strong>${item.confidence}%</strong></div><div class="signal-bar" style="margin-top:7px"><span style="width:${item.confidence}%"></span></div></div>
+        <div class="mechanism-flow full"><div class="mechanism-step"><div class="tiny subtle">发生了什么</div><strong>事实</strong><div style="margin-top:5px">${esc(item.evidence)}</div></div><div class="mechanism-step"><div class="tiny subtle">为什么有效 / 无效</div><strong>机制</strong><div style="margin-top:5px">${esc(item.summary)}</div></div><div class="mechanism-step"><div class="tiny subtle">如何迁移</div><strong>使用</strong><div style="margin-top:5px">${esc(item.applicability)}</div></div></div>
+        <div class="evidence full"><strong>证据范围 · ${esc(item.time)}</strong><div style="margin-top:5px">原始内容、评论或行为数据可回溯；演示版暂不打开原件。</div></div>
+        <dl class="detail-list full"><div class="detail-row"><dt>字段状态</dt><dd>${statusLabel(item.status)}${item.status==='ai'?` · 置信度 ${item.confidence}%`:''}</dd></div><div class="detail-row"><dt>失效边界</dt><dd>${esc(item.boundary)}</dd></div><div class="detail-row"><dt>合规状态</dt><dd>演示素材 · 来源已记录 · 待正式版权核验</dd></div></dl>
+        ${isCallable?`<div class="knowledge-callout full">${icon('check')} 已进入创意知识池，选题助手可引用此结论。</div>`:''}
+        <div class="review-actions full">
+          <button class="btn" data-action="review-discuss">${icon('message')}与 AI 讨论</button><button class="btn" data-action="review-edit">${icon('edit')}人工编辑</button>
+          <button class="btn danger" data-action="review-reject" ${item.status==='rejected'?'disabled':''}>${icon('x')}驳回</button><button class="btn green" data-action="review-confirm" ${isCallable?'disabled':''}>${icon('check')}确认沉淀</button>
+        </div>
+      </div>`;
+    }
+
+    function renderTopics(){
+      const session=getSession();
+      if (!session) return `<div class="page-titlebar"><div><h1>选题助手</h1><div class="subtle">人与 AI 共同把创作意图收敛为可开发选题。</div></div></div><div class="empty" style="max-width:900px;margin:auto">暂无活跃会话。请重置样例数据。</div>`;
+      return `
+        <div class="page-titlebar"><div><h1>选题助手</h1><div class="subtle">围绕创作方向持续讨论，把分散灵感收敛为可开发选题。</div></div><span class="pill demo">AI 推荐内容为演示数据</span></div>
+        <div class="workspace topic-workspace">
+          <aside class="panel sticky">${renderSessions(session)}</aside>
+          <section class="panel chat-panel">${renderChat(session)}</section>
+          <aside class="panel sticky right-column">${renderProfile(session)}</aside>
+        </div>${renderInspirationClouds()}`;
+    }
+    function renderSessions(current){
+      const active=activeSessions(), archived=state.topics.sessions.filter(x=>x.archived);
+      return `<div class="panel-head"><strong>选题会话</strong><span class="pill">${active.length} 个进行中</span></div><div class="panel-body">
+        <button class="btn primary block" data-action="new-session">${icon('plus')}新建会话</button>
+        <div class="session-list">${active.map(s=>renderSessionItem(s,current)).join('')}</div>
+        <div class="divider"></div><div class="row between"><strong class="tiny">当前引用</strong><button class="text-btn tiny" data-action="show-references">查看来源</button></div>
+        <div class="ref-list" style="margin-top:7px">${referenceItems(current).map(item=>`<div class="ref-item"><span class="status ${item.status}">${statusLabel(item.status)}</span><div style="margin-top:4px">${esc(item.title)}</div></div>`).join('')||'<div class="tiny subtle">尚未引用创意知识</div>'}</div>
+        ${archived.length?`<div class="divider"></div><details><summary class="tiny subtle">已归档 ${archived.length} 个</summary><div class="session-list archived">${archived.map(s=>renderSessionItem(s,current)).join('')}</div></details>`:''}
+      </div>`;
+    }
+    function renderSessionItem(s,current){
+      return `<div class="session-item ${s.id===current.id?'active':''}" data-action="select-session" data-id="${s.id}"><div><div class="row"><span class="session-status-dot ${s.status}"></span><span class="item-title">${esc(s.title)}</span></div><div class="item-meta">${s.confirmed?'已确认':statusLabel(s.status)} · ${esc(s.updated)}</div></div><div class="session-actions"><button data-action="archive-session" data-id="${s.id}" title="${s.archived?'恢复会话':'归档会话'}">${icon('archive')}</button><button data-action="delete-session" data-id="${s.id}" title="删除会话">${icon('trash')}</button></div></div>`;
+    }
+    function referenceItems(session){
+      const c1=state.creative.contents.find(x=>x.id==='c1');
+      if(c1 && !state.creative.analyses.c1?.length) state.creative.analyses.c1=buildVideoFields(c1);
+      const s1=state.creative.series.find(x=>x.id==='s1');
+      if(s1 && !state.creative.seriesAnalyses.s1?.length) state.creative.seriesAnalyses.s1=buildSeriesFields(s1);
+      const all=[...Object.values(state.creative.analyses).flat(),...Object.values(state.creative.seriesAnalyses).flat()];
+      return session.references.map(id=>all.find(x=>x.id===id)).filter(Boolean);
+    }
+    function renderChat(session){
+      return `<div class="chat-head"><div><strong>${esc(session.title)}</strong><div class="tiny subtle">${session.confirmed?'已确认，可继续提出明确修改目标':statusLabel(session.status)+' · 侧写随讨论实时收敛'}</div></div><button class="btn ${session.confirmed?'':'green'}" data-action="confirm-topic" ${session.confirmed?'disabled':''}>${icon('check')}${session.confirmed?'已确认选题':'确认选题'}</button></div>
+        <div class="chat-log">${session.messages.map(renderMessage).join('')}${session.typing?`<div class="message"><div class="avatar">AI</div><div class="bubble"><span class="typing"><i></i><i></i><i></i></span></div></div>`:''}</div>
+        <div class="quick-prompts">${['换一个更现实的代价','强化前三集钩子','检查同质化风险','收敛为一句话故事'].map(x=>`<button class="chip" data-action="quick-prompt" data-text="${x}">${x}</button>`).join('')}</div>
+        <div class="composer"><div class="composer-box"><textarea id="chat-input" placeholder="输入你的判断、质疑或修改方向…" aria-label="输入讨论内容"></textarea><button class="btn primary icon-only" data-action="send-chat" title="发送">${icon('send')}</button></div><div class="tiny subtle" style="margin-top:6px">AI 会说明引用依据；最终取舍由编剧确认。</div></div>`;
+    }
+    function renderMessage(m){ return `<div class="message ${m.role==='user'?'user':''}">${m.role==='user'?`<div class="bubble">${esc(m.text)}</div><div class="avatar">我</div>`:`<div class="avatar">AI</div><div class="bubble">${esc(m.text)}${m.citation?`<div class="citation">${icon('link')} ${esc(m.citation)}</div>`:''}</div>`}</div>`; }
+    function renderProfile(session){
+      const p=session.profile;
+      return `<div class="panel-head"><div><strong>选题侧写</strong><div class="tiny subtle">第 ${session.messages.length} 轮讨论</div></div><button class="btn icon-only" data-action="edit-profile" title="编辑侧写">${icon('edit')}</button></div><div class="panel-body profile">
+        <div class="profile-block full"><div class="profile-label">时代母题</div><div class="profile-value">${esc(p.theme)}</div></div>
+        <div class="profile-block"><div class="profile-label">主情绪</div><div class="profile-value">${esc(p.emotion)}</div></div>
+        <div class="profile-block"><div class="profile-label">核心人群</div><div>${esc(p.audience)}</div></div>
+        <div class="profile-block full"><div class="profile-label">一句话故事</div><div class="profile-value">${esc(p.logline)}</div></div>
+        <div class="profile-block full"><div class="profile-label">主角与抓人特征</div><div>${esc(p.protagonist)}</div></div>
+        <div class="profile-block full"><div class="profile-label">核心欲望与对抗</div><div>${esc(p.conflict)}</div></div>
+        <div class="profile-block full"><div class="profile-label">差异化表达</div><div>${esc(p.difference)}</div></div>
+        <div class="profile-block full"><div class="profile-label">前三集钩子</div><ol class="hook-list">${p.hooks.map(x=>`<li>${esc(x)}</li>`).join('')}</ol></div>
+        <div class="profile-block full"><div class="profile-label">风险与待决问题</div><div class="risk">${esc(p.risk)}</div></div>
+        <div class="full"><div class="row between tiny"><span class="subtle">选题完整度</span><strong>${session.confirmed?'100%':session.status==='converging'?'78%':'46%'}</strong></div><div class="progress-line" style="margin-top:6px">${[1,2,3,4].map((x,i)=>`<span class="${session.confirmed||session.status==='converging'&&i<3||session.status==='exploring'&&i<2?'on':''}"></span>`).join('')}</div></div>
+      </div>`;
+    }
+    function renderInspirationClouds(){
+      const stories=[['被抹去署名的剪辑师，带领失意同行重写合作规则','hot'],['小城律师用一桩无人愿接的小案撬动地方秩序','warm'],['完美妻子停止服务后，全家才看见被隐藏的劳动','hot'],['失业父亲假装正常上班，却在旧商场组建临时互助队','calm'],['被算法判定过气的歌手，开始替普通人保存声音','warm'],['退休教师发现学生正在复制她当年的沉默','calm']];
+      const themes=[['表达权','hot'],['中年重启','warm'],['隐形劳动','hot'],['普通人的规则','calm'],['关系祛魅','warm'],['专业价值','calm'],['代际合作','calm'],['尊严与生存','warm']];
+      const emotions=[['压抑','warm'],['解气','hot'],['笃定','calm'],['愤怒','hot'],['期待','warm'],['心疼','calm'],['释然','calm'],['荒诞','warm'],['共鸣','hot'],['不甘','warm']];
+      const panel=(title,subtitle,items,prefix)=>`<section class="cloud-panel"><div class="row between"><div><strong>${title}</strong><div class="tiny subtle">${subtitle}</div></div><span class="pill demo">AI 推荐</span></div><div class="cloud">${items.map(([text,tone])=>`<button class="cloud-word ${tone}" data-action="cloud-prompt" data-text="${esc(`${prefix}${text}`)}">${esc(text)}</button>`).join('')}</div></section>`;
+      return `<div class="inspiration-clouds">${panel('一句话故事云','点击后带入当前选题讨论',stories,'请围绕这个一句话故事展开：')}${panel('时代母题云','从社会处境与价值冲突切入',themes,'我想表达这个时代母题：')}${panel('情绪云','选择希望观众经历的主情绪',emotions,'我希望观众的核心情绪是：')}</div>`;
+    }
+
+    function seriesOptions(selectedId){
+      return `${state.creative.series.map(series=>`<option value="${series.id}" ${series.id===selectedId?'selected':''}>${esc(series.title)}</option>`).join('')}<option value="__new__">+ 新增剧名</option>`;
+    }
+    function genreDatalist(id){ return `<datalist id="${id}">${GENRE_OPTIONS.map(value=>`<option value="${esc(value)}"></option>`).join('')}</datalist>`; }
+    function createSeriesRecord(id,title,genre='待确认',platform='本地导入'){
+      return {id,title,platform,genre,orientation:'待确认',format:'待确认',audience:'待确认',theme:'待确认',emotion:'待确认',logline:'等待整剧信息补充与人工确认。',status:'review',tone:'red',videos:[]};
+    }
+    function openSeriesManager(){
+      const hidden=new Set(state.creative.hiddenSeriesIds||[]);
+      const rows=state.creative.series.map(series=>{
+        const isHidden=hidden.has(series.id),isActive=series.id===state.creative.selectedSeries;
+        const videoCount=state.creative.contents.filter(item=>item.seriesId===series.id).length;
+        return `<article class="series-manager-row ${isHidden?'is-hidden':''}" data-series-search="${esc(`${series.title} ${series.genre} ${series.platform}`.toLowerCase())}"><div><strong>${esc(series.title)}</strong><div class="item-meta"><span>${esc(series.genre)}</span><span>·</span><span>${videoCount} 个视频</span>${isActive?'<span class="status confirmed">当前剧目</span>':''}${isHidden?'<span class="status unknown">已隐藏</span>':''}</div></div><button class="btn" data-action="toggle-series-visibility" data-id="${series.id}" ${isActive&&!isHidden?'disabled title="当前剧目不能隐藏，请先切换"':''}>${icon(isHidden?'eye':'eyeOff')}${isHidden?'重新显示':'隐藏'}</button></article>`;
+      }).join('');
+      setModal(modalShell('管理剧目',`<div class="stack">
+        <div class="field"><label for="series-manager-search">查找剧目</label><input id="series-manager-search" placeholder="按剧名、题材或平台查找"></div>
+        <div class="series-manager-list" id="series-manager-list">${rows||'<div class="empty">还没有剧目</div>'}</div>
+        <div class="divider"></div>
+        <div><strong>新增空剧目</strong><div class="tiny subtle">先建立剧名和选择空间，之后再向其中上传各集视频。</div></div>
+        <div class="field"><label for="new-series-title">剧名</label><input id="new-series-title" placeholder="例如：腐女学院"></div>
+        <div class="row"><div class="field grow"><label for="new-series-genre">题材</label><input id="new-series-genre" placeholder="待确认"></div><div class="field grow"><label for="new-series-platform">来源平台</label><input id="new-series-platform" placeholder="本地导入"></div></div>
+      </div>`,`<button class="btn" data-action="close-modal">关闭</button><button class="btn primary" data-action="create-empty-series">${icon('plus')}新增剧目</button>`));
+      hydrateIcons(document.getElementById('modal-root'));
+    }
+    function openVideoOverviewEdit(){
+      const content=getContent(),series=getSeries();
+      setModal(modalShell('编辑视频基础信息',`<div class="stack">
+        <div class="field"><label for="video-series-select">归属剧名</label><select id="video-series-select">${seriesOptions(series.id)}</select></div>
+        <div class="field hidden" id="video-new-series-field"><label for="video-new-series">新增剧名</label><input id="video-new-series" placeholder="输入新剧名"></div>
+        <div class="row"><div class="field grow"><label for="video-episode">集数</label><input id="video-episode" type="number" min="1" value="${esc(content.episode)}"></div><div class="field grow"><label for="video-type">视频类型</label><select id="video-type"><option value="正片" ${content.videoType==='正片'?'selected':''}>正片</option><option value="预告片" ${content.videoType==='预告片'?'selected':''}>预告片</option><option value="周边" ${content.videoType==='周边'?'selected':''}>周边</option><option value="待确认" ${!['正片','预告片','周边'].includes(content.videoType)?'selected':''}>待确认</option></select></div><div class="field grow"><label for="video-episode-title">集标题</label><input id="video-episode-title" value="${esc(content.title)}"></div></div>
+        <div class="row"><div class="field grow"><label for="video-duration">时长</label><input id="video-duration" value="${esc(content.duration)}"></div><div class="field grow"><label for="video-platform">来源平台</label><input id="video-platform" value="${esc(content.source)}"></div><div class="field grow"><label for="video-genre">题材</label><input id="video-genre" list="video-genre-options" value="${esc(content.genre)}">${genreDatalist('video-genre-options')}</div></div>
+        <div class="field"><label for="video-goal">本集目标</label><textarea id="video-goal">${esc(content.goal)}</textarea></div>
+        <div class="field"><label for="video-change">状态变化</label><textarea id="video-change">${esc(content.change)}</textarea></div>
+        <div class="field"><label for="video-focus">分析重点</label><textarea id="video-focus">${esc(content.focus)}</textarea></div>
+      </div>`,`<button class="btn" data-action="close-modal">取消</button><button class="btn primary" data-action="save-video-overview">${icon('check')}保存修改</button>`));
+      hydrateIcons(document.getElementById('modal-root'));
+    }
+
+    async function openModelConfig(){
+      try { serverConfig=await api('/api/config'); updateApiState(); }
+      catch (error) { toast(error.message,'error'); return; }
+      setModal(modalShell('Qwen API 配置',`<div class="stack">
+        <div class="config-summary"><div><span>连接状态</span><strong>${serverConfig.configured?'已配置':'未配置'}</strong></div><div><span>当前模型</span><strong>${esc(serverConfig.model_id)}</strong></div><div><span>密钥状态</span><strong>${esc(serverConfig.masked_key)}</strong></div></div>
+        <div class="file-note"><strong>本应用只支持百炼按量付费 API Key</strong><div style="margin-top:4px">请使用 <code>sk-</code> 开头的 Key 和标准接口地址。<code>sk-sp-</code> Token Plan / Coding Plan Key 不能获取视频临时上传凭证。</div><button class="btn" style="margin-top:8px" data-action="use-recommended-model-config">使用推荐配置</button></div>
+        <div class="field"><label for="config-base-url">百炼兼容接口地址</label><input id="config-base-url" value="${esc(serverConfig.base_url)}"></div>
+        <div class="field"><label for="config-model-id">模型 ID</label><input id="config-model-id" value="${esc(serverConfig.model_id)}"></div>
+        <div class="field"><label for="config-api-key">API Key</label><input id="config-api-key" type="password" autocomplete="off" placeholder="${serverConfig.configured?'留空则继续使用当前内存中的密钥':'填写 DashScope API Key'}"></div>
+        <div class="file-note">API Key 只保存在当前本地服务的内存中，重启服务后需要重新填写；不会写入浏览器、配置文件或分析 JSON。</div>
+      </div>`,`<button class="btn" data-action="close-modal">取消</button><button class="btn" data-action="save-model-config">保存</button><button class="btn primary" data-action="test-model-config">${icon('check')}保存并测试</button>`));
+      hydrateIcons(document.getElementById('modal-root'));
+    }
+    async function saveModelConfig(shouldTest=false){
+      const base=document.getElementById('config-base-url'),model=document.getElementById('config-model-id'),key=document.getElementById('config-api-key');
+      if(!base||!model)return;
+      try {
+        serverConfig=await api('/api/config',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({base_url:base.value.trim(),model_id:model.value.trim(),api_key:key?.value.trim()||null})});
+        updateApiState();
+        if(shouldTest){ const result=await api('/api/config/test',{method:'POST'}); toast(result.message||'模型连接成功'); }
+        else toast('模型配置已保存到本地服务');
+        setModal('');
+      } catch(error){ toast(error.message,'error'); }
+    }
+    function openUpload(){
+      setModal(modalShell('上传视频并解析',`<div class="stack">
+        <label class="dropzone"><input id="upload-video" type="file" accept=".mp4,.mov,.mkv,.avi,.webm,.flv,.wmv,video/*" class="hidden"><span>${icon('upload')}</span><strong>选择本地视频</strong><span class="tiny subtle">支持常见视频格式，单个文件最大 80MB</span><span class="file-name" id="video-name">尚未选择</span></label>
+        <div class="row"><div class="field grow"><label for="upload-series-select">归属剧名</label><select id="upload-series-select">${seriesOptions(getSeries().id)}</select></div><div class="field grow"><label for="upload-episode">第 X 集（可选）</label><input id="upload-episode" type="number" min="1" placeholder="留空由 AI 识别"><span class="tiny subtle">人工填写后优先采用；解析完成后仍可修改。</span></div></div>
+        <div class="field hidden" id="upload-new-series-field"><label for="upload-new-series">新增剧名</label><input id="upload-new-series" placeholder="输入新剧名"></div>
+        <div class="row"><div class="field grow"><label for="upload-subtitle">字幕文件（可选）</label><input id="upload-subtitle" type="file" accept=".srt,.vtt,.txt"></div><div class="field grow"><label for="upload-comments">评论数据（可选）</label><input id="upload-comments" type="file" accept=".csv,.txt"></div></div>
+        <div class="row"><div class="field grow"><label for="upload-genre">题材提示（可选）</label><input id="upload-genre" list="upload-genre-options" value="AI 自动识别">${genreDatalist('upload-genre-options')}<span class="tiny subtle">AI 会根据视频内容独立判断，解析后可人工修改。</span></div><div class="field grow"><label for="upload-video-type">视频类型</label><select id="upload-video-type"><option value="AI 自动识别">AI 自动识别</option><option value="正片">正片</option><option value="预告片">预告片</option><option value="周边">周边</option></select><span class="tiny subtle">AI 判断后仍可人工调整。</span></div><div class="field grow"><label for="upload-platform">来源平台</label><select id="upload-platform"><option>红果</option><option>抖音</option><option>快手</option><option>本地原创</option><option>其他</option></select></div></div>
+        <div class="file-note">未上传真实评论数据时，观众反馈字段会保留为“未解析”，不会生成没有依据的评论、播放量或留存指标。</div>
+      </div>`,`<button class="btn" data-action="close-modal">取消</button><button class="btn primary" data-action="start-upload">${icon('spark')}上传并开始解析</button>`));
+      hydrateIcons(document.getElementById('modal-root'));
+    }
+    function openReviewEdit(){
+      const item=getAnalysis(); if(!item) return;
+      if(item.entityType==='character'){
+        const d=item.details;
+        const field=(id,label,value)=>`<div class="field"><label for="${id}">${label}</label><textarea id="${id}">${esc(value)}</textarea></div>`;
+        setModal(modalShell(`编辑角色｜${item.title}`,`<div class="stack"><div class="row"><div class="field grow"><label for="char-name">角色名或代号</label><input id="char-name" value="${esc(item.title)}"></div><div class="field grow"><label for="char-gender">人物标记</label><input id="char-gender" value="${esc(d.gender||'待确认')}"></div><div class="field grow"><label for="char-role">角色类型</label><input id="char-role" value="${esc(d.role)}"></div></div><div class="row"><div class="field grow"><label for="char-faction">所属阵营</label><input id="char-faction" value="${esc(d.faction)}"></div><div class="field grow"><label for="char-first-seen">首次出现</label><input id="char-first-seen" value="${esc(d.firstSeen||item.time)}"></div></div><div class="row">${field('char-arc','成长弧',d.arc)}${field('char-surface','表层目标',d.surface)}</div><div class="row">${field('char-deep','深层目标',d.deep)}${field('char-contrast','反差',d.contrast)}</div><div class="row">${field('char-weakness','真实弱点',d.weakness)}${field('char-visual','视觉锚点',d.visual)}</div></div>`,`<button class="btn" data-action="close-modal">取消</button><button class="btn primary" data-action="save-character-edit">${icon('check')}保存并确认</button>`));
+        hydrateIcons(document.getElementById('modal-root')); return;
+      }
+      if(item.entityType==='relationship'){
+        const lines=item.details.edges.map(x=>`${x.from}｜${x.to}｜${x.label}`).join('\n');
+        setModal(modalShell('编辑人物关系网',`<div class="stack"><div class="field"><label for="relation-edges">关系边（每行：人物A｜人物B｜关系）</label><textarea id="relation-edges" style="min-height:180px">${esc(lines)}</textarea></div><div class="tiny subtle">角色名应与角色档案一致；保存后关系图立即更新。</div></div>`,`<button class="btn" data-action="close-modal">取消</button><button class="btn primary" data-action="save-relationship-edit">${icon('check')}保存并确认</button>`));
+        hydrateIcons(document.getElementById('modal-root')); return;
+      }
+      if(item.entityType==='faction'){
+        const d=item.details;
+        setModal(modalShell(`编辑阵营｜${item.title}`,`<div class="stack"><div class="row"><div class="field grow"><label for="faction-name">阵营名称</label><input id="faction-name" value="${esc(item.title)}"></div><div class="field grow"><label for="faction-position">阵营定位</label><input id="faction-position" value="${esc(d.position)}"></div></div><div class="field"><label for="faction-traits">特征与设定</label><textarea id="faction-traits">${esc(d.traits)}</textarea></div><div class="field"><label for="faction-goal">核心目标</label><textarea id="faction-goal">${esc(d.goal)}</textarea></div><div class="row"><div class="field grow"><label for="faction-resources">资源与能力</label><textarea id="faction-resources">${esc(d.resources)}</textarea></div><div class="field grow"><label for="faction-constraints">约束与弱点</label><textarea id="faction-constraints">${esc(d.constraints)}</textarea></div></div></div>`,`<button class="btn" data-action="close-modal">取消</button><button class="btn primary" data-action="save-faction-edit">${icon('check')}保存并确认</button>`));
+        hydrateIcons(document.getElementById('modal-root')); return;
+      }
+      if(item.entityType==='worldElement'){
+        setModal(modalShell(`编辑世界观要素｜${item.title}`,`<div class="stack"><div class="field"><label for="world-title">分类与名称</label><input id="world-title" value="${esc(item.title)}"></div><div class="field"><label for="world-summary">要素描述</label><textarea id="world-summary">${esc(item.summary)}</textarea></div><div class="field"><label for="world-evidence">视频证据</label><textarea id="world-evidence">${esc(item.evidence)}</textarea></div><div class="field"><label for="world-time">证据时间</label><input id="world-time" value="${esc(item.time)}"></div></div>`,`<button class="btn" data-action="close-modal">取消</button><button class="btn primary" data-action="save-world-element">${icon('check')}保存并确认</button>`));
+        hydrateIcons(document.getElementById('modal-root')); return;
+      }
+      if(item.entityType==='platform'){
+        const d=item.details;
+        setModal(modalShell(`编辑平台洞察｜${item.title}`,`<div class="stack"><div class="field"><label for="platform-source">数据来源说明</label><input id="platform-source" value="${esc(d.source)}"></div><div class="field"><label for="platform-note">人工结论或数据缺口</label><textarea id="platform-note">${esc(d.note)}</textarea></div><div class="field"><label for="platform-fields">待分析维度（逗号分隔）</label><input id="platform-fields" value="${esc(d.fields.join('、'))}"></div><div class="field"><label for="platform-summary">平台判断</label><textarea id="platform-summary">${esc(item.summary)}</textarea></div></div>`,`<button class="btn" data-action="close-modal">取消</button><button class="btn primary" data-action="save-platform-edit">${icon('check')}保存并确认</button>`));
+        hydrateIcons(document.getElementById('modal-root')); return;
+      }
+      setModal(modalShell('人工编辑分析结论',`<div class="stack"><div class="field"><label>标题</label><input id="edit-title" value="${esc(item.title)}"></div><div class="field"><label>结论</label><textarea id="edit-summary">${esc(item.summary)}</textarea></div><div class="field"><label>适用场景</label><textarea id="edit-applicability">${esc(item.applicability)}</textarea></div><div class="field"><label>失效边界</label><textarea id="edit-boundary">${esc(item.boundary)}</textarea></div></div>`,`<button class="btn" data-action="close-modal">取消</button><button class="btn primary" data-action="save-review-edit">${icon('check')}保存并确认</button>`)); hydrateIcons(document.getElementById('modal-root'));
+    }
+    function openDiscussion(){
+      const item=getAnalysis(); if(!item)return;
+      const history=item.discussion||[];
+      setModal(modalShell('与 AI 讨论这条结论',`<div class="discussion">${history.length?history.map(x=>`<div class="discussion-entry ${x.role==='ai'?'ai':''}"><strong>${x.role==='ai'?'AI':'我'}</strong><div>${esc(x.text)}</div></div>`).join(''):`<div class="discussion-entry ai"><strong>AI</strong><div>当前结论置信度为 ${item.confidence}%。你可以要求我解释依据、寻找反例，或收窄适用条件。</div></div>`}</div><div class="field"><label for="discussion-input">继续讨论</label><textarea id="discussion-input" placeholder="例如：这个结论对家庭题材也成立吗？"></textarea></div>`,`<button class="btn" data-action="close-modal">关闭</button><button class="btn primary" data-action="send-review-discussion">${icon('send')}发送</button>`)); hydrateIcons(document.getElementById('modal-root'));
+    }
+    function openProfileEdit(){
+      const s=getSession(),p=s.profile;
+      const field=(id,label,val,area=true)=>`<div class="field"><label for="${id}">${label}</label>${area?`<textarea id="${id}">${esc(val)}</textarea>`:`<input id="${id}" value="${esc(val)}">`}</div>`;
+      setModal(modalShell('编辑选题侧写',`<div class="stack">${field('p-theme','时代母题',p.theme,false)}${field('p-emotion','主情绪',p.emotion,false)}${field('p-audience','核心人群',p.audience)}${field('p-logline','一句话故事',p.logline)}${field('p-protagonist','主角与抓人特征',p.protagonist)}${field('p-conflict','核心欲望与对抗',p.conflict)}${field('p-difference','差异化表达',p.difference)}${field('p-hooks','前三集钩子（每行一条）',p.hooks.join('\n'))}${field('p-risk','风险与待决问题',p.risk)}</div>`,`<button class="btn" data-action="close-modal">取消</button><button class="btn primary" data-action="save-profile">${icon('check')}保存侧写</button>`)); hydrateIcons(document.getElementById('modal-root'));
+    }
+    function showReferences(){
+      const items=referenceItems(getSession());
+      setModal(modalShell('本选题引用的创意知识',items.map(x=>`<article class="ref-item" style="margin-bottom:8px"><div class="row between"><strong>${esc(x.title)}</strong><span class="status ${x.status}">${statusLabel(x.status)}</span></div><p style="margin:7px 0">${esc(x.summary)}</p><div class="evidence">${esc(x.evidence)}</div></article>`).join('')||'<div class="empty">尚未引用创意知识</div>',`<button class="btn" data-action="close-modal">关闭</button>`)); hydrateIcons(document.getElementById('modal-root'));
+    }
+    function showDataNote(){
+      setModal(modalShell('数据说明',`<div class="stack"><p>创意库已接入本地上传、Qwen 视频理解、完整元数据校验和人工审核回写。页面内原有样例剧集仍属于虚构演示数据。</p><div class="evidence"><strong>本地数据</strong><div>上传任务、视频文件和分析结果保存在当前子项目的 runtime-data 目录；人工修改会自动回写对应 JSON。</div></div><div class="evidence"><strong>平台数据原则</strong><div>只有上传真实评论文件后才分析观众反馈；未提供播放、增长和留存数据时，不生成相关量化指标。</div></div><div class="evidence"><strong>API Key</strong><div>密钥仅保存在本地服务内存中，不写入浏览器、配置文件或分析结果；服务重启后需重新填写。</div></div><p class="subtle">模型结论、情绪曲线和分镜拆解都需要人工复核，不应直接视为事实或真实平台表现。</p></div>`,`<button class="btn" data-action="close-modal">知道了</button>`)); hydrateIcons(document.getElementById('modal-root'));
+    }
+    function showPreview(){ toast('正在播放 12 秒演示片段（模拟）'); }
+
+    async function startRealUpload(){
+      const video=document.getElementById('upload-video');
+      if(!video || !video.files.length){ toast('请先选择一个视频文件','error'); return; }
+      if(!serverConfig.configured){ toast('请先在顶部配置并测试 Qwen API','error'); return; }
+      const selection=document.getElementById('upload-series-select')?.value||getSeries().id;
+      let series=state.creative.series.find(item=>item.id===selection);
+      if(selection==='__new__'){
+        const title=document.getElementById('upload-new-series')?.value.trim();
+        if(!title){ toast('请输入新增剧名','error'); return; }
+        const id=uid('series');
+        series=createSeriesRecord(id,title,document.getElementById('upload-genre').value,document.getElementById('upload-platform').value);
+      }
+      if(!series){ toast('请选择有效的归属剧名','error'); return; }
+      const form=new FormData();
+      form.append('video',video.files[0]);
+      const subtitle=document.getElementById('upload-subtitle')?.files?.[0],comments=document.getElementById('upload-comments')?.files?.[0];
+      if(subtitle)form.append('subtitle',subtitle); if(comments)form.append('comments',comments);
+      form.append('genre',document.getElementById('upload-genre').value);
+      form.append('platform',document.getElementById('upload-platform').value);
+      form.append('video_type',document.getElementById('upload-video-type').value);
+      form.append('series_id',series.id);
+      form.append('series_title',series.title);
+      const episodeHint=document.getElementById('upload-episode')?.value.trim();
+      if(episodeHint)form.append('episode',episodeHint);
+      try {
+        const job=await api('/api/jobs',{method:'POST',body:form});
+        if(!state.creative.series.some(item=>item.id===series.id)){ state.creative.series.push(series); state.creative.seriesAnalyses[series.id]=[]; }
+        const id=`qwen-${job.id}`,episode=job.episode_hint||state.creative.contents.filter(x=>x.seriesId===series.id).length+1;
+        const item={id,seriesId:series.id,seriesTitle:series.title,episode,title:job.file_name.replace(/\.[^.]+$/,''),source:document.getElementById('upload-platform').value,sourceFile:job.file_name,genre:job.genre,videoType:job.video_type_hint==='AI 自动识别'?'待识别':job.video_type_hint,duration:'待识别',status:'processing',progress:job.progress,stage:job.stage,tone:series.tone,goal:'等待模型识别',change:'等待模型识别',focus:'等待模型完成视频拆解',analysisJobId:job.id};
+        state.creative.contents.unshift(item); series.videos.push(id); state.creative.analyses[id]=[]; state.creative.selectedSeries=series.id; state.creative.scope='video'; state.ui.analysisTab='responsibility'; state.ui.selectedContent=id; state.ui.selectedAnalysis='';
+        setModal(''); render(); toast('视频已保存，Qwen 开始解析'); pollJob(job.id,id);
+      } catch(error){ toast(error.message,'error'); }
+    }
+    async function pollJob(jobId,contentId){
+      try {
+        const job=await api(`/api/jobs/${jobId}`),content=state.creative.contents.find(x=>x.id===contentId);
+        if(!content)return;
+        content.status=job.status==='completed'?'review':job.status;
+        content.progress=job.progress; content.stage=job.stage; content.error=job.error||'';
+        if(job.status==='completed'){
+          const result=await api(`/api/analyses/${jobId}`); applyRealAnalysis(content,result); render(); toast('Qwen 解析完成，已进入人工审核'); return;
+        }
+        render();
+        if(job.status==='failed'){ toast('解析失败，可检查配置后重试','error'); return; }
+        setTimeout(()=>pollJob(jobId,contentId),1500);
+      } catch(error){ const content=state.creative.contents.find(x=>x.id===contentId); if(content){content.status='failed';content.error=error.message;content.stage='读取任务失败';render();} toast(error.message,'error'); }
+    }
+    function applyRealAnalysis(content,result){
+      const series=state.creative.series.find(item=>item.id===content.seriesId);
+      Object.assign(content,{title:result.video.episode_title||result.video.title||content.title,seriesTitle:result.video.series_title||series?.title||'',duration:result.video.duration||content.duration,goal:result.video.goal||'',change:result.video.change||'',focus:result.video.focus||'',episode:result.video.episode||content.episode,videoType:result.video.video_type||content.videoType||'待确认',genre:result.video.genre||content.genre,source:result.video.platform||content.source,status:'review',progress:100,stage:'等待人工审核',analysisJobId:result.job_id,analysisCreatedAt:result.created_at,modelId:result.model_id,sourceFile:result.source_file,storyboard:result.storyboard||[],emotionCurve:result.emotion_curve});
+      applyWorldAnalysis(content,result.world);
+      state.creative.analyses[content.id]=result.fields||[];
+      state.ui.selectedAnalysis=(result.fields||[])[0]?.id||'';
+      lastAnalysisSync=JSON.stringify(currentAnalysisPayload()||{});
+    }
+    async function retryCurrentJob(){
+      const content=getContent(); if(!content.analysisJobId)return;
+      try { const job=await api(`/api/jobs/${content.analysisJobId}/retry`,{method:'POST'}); content.status='processing';content.progress=job.progress;content.stage=job.stage;content.error='';render();pollJob(job.id,content.id);toast('已重新提交解析'); }
+      catch(error){ toast(error.message,'error'); }
+    }
+    async function reanalyzeWorldAnalyses(){
+      const targets=state.creative.scope==='series'?state.creative.contents.filter(item=>item.seriesId===getSeries().id&&item.analysisJobId):[getContent()].filter(item=>item?.analysisJobId);
+      if(!targets.length){toast('当前剧目没有可补充解析的已上传视频','error');return;}
+      let started=0;
+      for(const content of targets){
+        try{
+          const job=await api(`/api/jobs/${content.analysisJobId}/reanalyze-world`,{method:'POST'});
+          content.status='processing';content.progress=job.progress;content.stage=job.stage;content.error='';started+=1;pollJob(job.id,content.id);
+        }catch(error){toast(`${episodeLabel(content)}：${error.message}`,'error');}
+      }
+      render(); if(started)toast(`已为 ${started} 个视频启动人物与世界补充解析`);
+    }
+    function resumePendingJobs(){
+      state.creative.contents.filter(item=>item.status==='processing'&&item.analysisJobId).forEach(item=>pollJob(item.analysisJobId,item.id));
+    }
+    function addChat(text){
+      const s=getSession(); if(!s || !text.trim()) return;
+      s.messages.push({role:'user',text:text.trim()}); s.typing=true; s.updated=`今天 ${nowLabel()}`; render();
+      setTimeout(()=>{
+        const current=state.topics.sessions.find(x=>x.id===s.id); if(!current)return;
+        current.typing=false;
+        const response=mockReply(text,current);
+        current.messages.push({role:'ai',text:response.text,citation:response.citation});
+        current.status='converging'; current.updated=`今天 ${nowLabel()}`;
+        applyProfileUpdate(text,current); render();
+      },650);
+    }
+    function mockReply(text,s){
+      if(/代价|现实/.test(text)) return {text:'建议把代价拆成三层：立即失去稳定收入、短期失去行业信用、长期必须对新团队负责。这样胜利不是一次打脸，而是主角愿意为新选择承担后果。你需要决定第一层代价在第几集真正发生。',citation:'引用：中年重启需要现实代价、反派不能降智'};
+      if(/钩子|前三集/.test(text)) return {text:'前三集可以形成递进：先看到被盗用的结果，再发现公开证据会触发违约，最后让唯一愿意合作的客户与原公司绑定。每集的新问题都来自上一集的选择，避免靠新增意外硬续。',citation:'引用：先给结果再追问原因、集尾问题来自本集后果'};
+      if(/同质|风险/.test(text)) return {text:'当前最大的同质化风险是“职场打脸 + 姐姐组队”。差异化应落在专业行动：她如何用剪辑、证据链和内容判断改变局势。建议减少喊口号，把能力写成可见决策。',citation:'引用：价值台词必须由行动兑现'};
+      if(/一句话|收敛/.test(text)) return {text:`可收敛为：${s.profile.logline} 现在仍需删掉一个概念，优先保留“夺回署名”，把“对抗 AI”降为背景。`,citation:'引用：高共鸣来自表达权，而非代际对抗'};
+      return {text:'我理解你的判断。基于已确认的创意知识，我会优先检查三件事：冲突是否来自人物选择、情绪峰值是否由行动兑现、集尾问题是否是本集后果。你希望先改人物、冲突，还是前三集钩子？',citation:'引用：3 条已确认创意知识'};
+    }
+    function applyProfileUpdate(text,s){
+      if(/代价|现实/.test(text)){ s.profile.conflict='她要用专业证据夺回署名，同时立即失去稳定收入、行业信用，并承担新团队失败的责任。'; s.profile.risk='必须具体表现经济压力；不能让反派因低级失误落败。'; }
+      if(/同质|风险/.test(text)) s.profile.difference='不靠年龄对立或口号取胜，用剪辑判断、证据链和团队交付呈现主角的专业能力。';
+      if(/一句话|收敛/.test(text)) s.profile.logline=s.profile.logline.replace('被 AI 工具和年轻团队双重替代后，','被公司抹去作品署名后，');
+    }
+    function jumpToSection(category,selector=''){
+      requestAnimationFrame(()=>{
+        const section=document.getElementById(`metadata-${category}`); if(!section)return;
+        section.open=true;
+        const target=selector?section.querySelector(selector):section;
+        (target||section).scrollIntoView({behavior:'smooth',block:'start'});
+      });
+    }
+
+    function dispatch(action,el){
+      if(action==='switch-page'){ state.ui.page=el.dataset.page; render(); return; }
+      if(action==='open-model-config'){ openModelConfig(); return; }
+      if(action==='use-recommended-model-config'){
+        const base=document.getElementById('config-base-url'),model=document.getElementById('config-model-id');
+        if(base)base.value='https://dashscope.aliyuncs.com/compatible-mode/v1';
+        if(model)model.value='qwen3.5-omni-plus-2026-03-15';
+        toast('已填入百炼按量付费推荐配置'); return;
+      }
+      if(action==='save-model-config'){ saveModelConfig(false); return; }
+      if(action==='test-model-config'){ saveModelConfig(true); return; }
+      if(action==='show-data-note'){ showDataNote(); return; }
+      if(action==='reset'){ if(confirm('恢复初始样例数据？当前演示操作将被清除。')){ state=clone(defaultState); setModal(''); render(); toast('已恢复初始样例数据'); } return; }
+      if(action==='close-modal'){ setModal(''); return; }
+      if(action==='open-upload'){ openUpload(); return; }
+      if(action==='open-series-manager'){ openSeriesManager(); return; }
+      if(action==='hide-series'){
+        const id=el.dataset.id;
+        if(id===state.creative.selectedSeries){toast('当前剧目不能隐藏，请先切换到其他剧目','error');return;}
+        if(!state.creative.hiddenSeriesIds.includes(id))state.creative.hiddenSeriesIds.push(id);
+        render(); toast('剧目已从左栏隐藏，可在“管理剧目”中恢复'); return;
+      }
+      if(action==='toggle-series-visibility'){
+        const id=el.dataset.id,hidden=state.creative.hiddenSeriesIds.includes(id);
+        if(!hidden&&id===state.creative.selectedSeries){toast('当前剧目不能隐藏，请先切换到其他剧目','error');return;}
+        state.creative.hiddenSeriesIds=hidden?state.creative.hiddenSeriesIds.filter(seriesId=>seriesId!==id):[...state.creative.hiddenSeriesIds,id];
+        render(); openSeriesManager(); toast(hidden?'剧目已重新显示':'剧目已隐藏'); return;
+      }
+      if(action==='create-empty-series'){
+        const title=document.getElementById('new-series-title')?.value.trim();
+        if(!title){toast('请输入剧名','error');return;}
+        if(state.creative.series.some(series=>series.title===title)){toast('该剧名已存在，可直接恢复或选择','error');return;}
+        const id=uid('series'),genre=document.getElementById('new-series-genre')?.value.trim()||'待确认',platform=document.getElementById('new-series-platform')?.value.trim()||'本地导入';
+        state.creative.series.push(createSeriesRecord(id,title,genre,platform));
+        state.creative.seriesAnalyses[id]=[];
+        state.creative.seriesHeights[id]=180;
+        state.creative.hiddenSeriesIds=state.creative.hiddenSeriesIds.filter(seriesId=>seriesId!==id);
+        state.creative.selectedSeries=id;
+        state.creative.scope='series';
+        state.ui.analysisTab='positioning';
+        state.ui.selectedAnalysis='';
+        setModal(''); render(); toast('新剧目已建立，可开始上传视频'); return;
+      }
+      if(action==='start-upload'){ startRealUpload(); return; }
+      if(action==='edit-video-overview'){ openVideoOverviewEdit(); return; }
+      if(action==='save-video-overview'){
+        const content=getContent(),oldSeries=state.creative.series.find(item=>item.id===content.seriesId);
+        const selection=document.getElementById('video-series-select')?.value;
+        let targetSeries=state.creative.series.find(item=>item.id===selection);
+        if(selection==='__new__'){
+          const title=document.getElementById('video-new-series')?.value.trim();
+          if(!title){ toast('请输入新增剧名','error'); return; }
+          targetSeries=createSeriesRecord(uid('series'),title,document.getElementById('video-genre').value.trim(),document.getElementById('video-platform').value.trim());
+          state.creative.series.push(targetSeries); state.creative.seriesAnalyses[targetSeries.id]=[];
+        }
+        if(!targetSeries){ toast('请选择有效的归属剧名','error'); return; }
+        if(oldSeries?.id!==targetSeries.id){
+          if(oldSeries)oldSeries.videos=oldSeries.videos.filter(id=>id!==content.id);
+          if(!targetSeries.videos.includes(content.id))targetSeries.videos.push(content.id);
+        }
+        Object.assign(content,{seriesId:targetSeries.id,seriesTitle:targetSeries.title,episode:Math.max(1,Number(document.getElementById('video-episode').value)||1),videoType:document.getElementById('video-type').value,title:document.getElementById('video-episode-title').value.trim()||content.title,duration:document.getElementById('video-duration').value.trim()||'待确认',source:document.getElementById('video-platform').value.trim()||'本地导入',genre:document.getElementById('video-genre').value.trim()||'待确认',goal:document.getElementById('video-goal').value.trim(),change:document.getElementById('video-change').value.trim(),focus:document.getElementById('video-focus').value.trim()});
+        state.creative.selectedSeries=targetSeries.id; setModal(''); render(); toast('视频基础信息已更新'); return;
+      }
+      if(action==='retry-job'){ retryCurrentJob(); return; }
+      if(action==='reanalyze-world'){ reanalyzeWorldAnalyses(); return; }
+      if(action==='download-analysis'){ const content=getContent(); if(content.analysisJobId)window.location.href=`/api/analyses/${content.analysisJobId}/download`; return; }
+      if(action==='novel-placeholder'){ toast('小说分析暂未开放，当前仅保留类型入口'); return; }
+      if(action==='switch-scope'){ state.creative.scope=el.dataset.scope; state.ui.analysisTab=el.dataset.scope==='series'?'positioning':'responsibility'; const list=getAnalyses(); state.ui.selectedAnalysis=(list.find(x=>x.category===state.ui.analysisTab)||list[0]||{}).id||''; render(); return; }
+      if(action==='select-series'){ state.creative.selectedSeries=el.dataset.id; const first=state.creative.contents.find(x=>x.seriesId===el.dataset.id); if(first)state.ui.selectedContent=first.id; state.creative.scope='series'; state.ui.analysisTab='positioning'; const list=getAnalyses(); state.ui.selectedAnalysis=(list[0]||{}).id||''; render(); return; }
+      if(action==='select-video'){ const video=state.creative.contents.find(x=>x.id===el.dataset.id); if(!video)return; state.ui.selectedContent=video.id; state.creative.selectedSeries=video.seriesId; state.creative.scope='video'; state.ui.analysisTab='responsibility'; const list=getAnalyses(); state.ui.selectedAnalysis=(list[0]||{}).id||''; render(); return; }
+      if(action==='analysis-tab'){ state.ui.analysisTab=el.dataset.tab; const list=getAnalyses().filter(x=>x.category===el.dataset.tab); if(list.length)state.ui.selectedAnalysis=list[0].id; render(); return; }
+      if(action==='select-analysis'){ state.ui.selectedAnalysis=el.dataset.id; render(); return; }
+      if(action==='play-preview'){ showPreview(); return; }
+      if(action==='confirm-section'){
+        const category=el.dataset.category;
+        const items=visibleSectionItems(category,getAnalyses().filter(x=>x.category===category));
+        const pending=items.filter(x=>x.status==='ai');
+        pending.forEach(x=>x.status='confirmed');
+        if(pending[0])state.ui.selectedAnalysis=pending[0].id;
+        render(); jumpToSection(category); toast(pending.length?`已人工确认本模块 ${pending.length} 项 AI 解析结果`:'本模块没有待审核字段'); return;
+      }
+      if(action==='jump-section'){ jumpToSection(el.dataset.category); return; }
+      if(action==='jump-status'){
+        const status=el.dataset.status,items=renderedAnalysisItems();
+        const match=items.find(x=>status==='unknown'?x.status==='unknown':status==='reviewed'?(x.status==='confirmed'||x.status==='edited'):x.status==='ai') || (status==='parsed'?items.find(x=>x.status!=='unknown'):null);
+        if(!match){toast('当前对象没有该状态的元数据','error');return;}
+        state.ui.selectedAnalysis=match.id; render(); jumpToSection(match.category,`[data-id="${match.id}"]`); return;
+      }
+      if(action==='review-confirm'){ const x=getAnalysis(el.dataset.id||state.ui.selectedAnalysis); if(x){state.ui.selectedAnalysis=x.id;x.status='confirmed'; render(); toast('该字段已人工确认');} return; }
+      if(action==='review-reject'){ const x=getAnalysis(el.dataset.id||state.ui.selectedAnalysis); if(x){state.ui.selectedAnalysis=x.id;x.status='rejected'; render(); toast('该字段已驳回');} return; }
+      if(action==='review-edit'){ if(el.dataset.id)state.ui.selectedAnalysis=el.dataset.id; openReviewEdit(); return; }
+      if(action==='save-review-edit'){
+        const x=getAnalysis(); if(!x)return; x.title=document.getElementById('edit-title').value.trim(); x.summary=document.getElementById('edit-summary').value.trim(); x.applicability=document.getElementById('edit-applicability').value.trim(); x.boundary=document.getElementById('edit-boundary').value.trim(); x.status='edited'; setModal(''); render(); toast('人工修改已保存并确认'); return;
+      }
+      if(action==='add-world-entity'){
+        const list=getAnalyses(),kind=el.dataset.kind,id=uid(`manual-${kind}`); let item;
+        if(kind==='character'){
+          item=makeItem(id,'world','新增角色','出场人物｜信息待补充','人工新增角色。','人工补充',0,'unknown'); item.entityType='character'; item.details={role:'出场人物',faction:'信息不足',arc:'信息不足',surface:'信息不足',deep:'信息不足',contrast:'信息不足',weakness:'信息不足',visual:'信息不足',gender:'待确认',firstSeen:'时间待确认',sourceEpisodes:[],mergePending:false};
+        }else if(kind==='faction'){
+          item=makeItem(id,'world','新增阵营','信息待补充','人工新增阵营。','人工补充',0,'unknown'); item.entityType='faction'; item.details={position:'信息不足',traits:'信息不足',goal:'信息不足',resources:'信息不足',constraints:'信息不足'};
+        }else{
+          item=makeItem(id,'world','其他｜新增世界观要素','信息不足','人工新增世界观要素。','人工补充',0,'unknown'); item.entityType='worldElement';
+        }
+        list.push(item);state.ui.selectedAnalysis=item.id;render();openReviewEdit();return;
+      }
+      if(action==='delete-world-entity'){
+        const item=getAnalysis(el.dataset.id);if(!item||!confirm(`删除“${item.title}”？`))return;
+        const list=getAnalyses(),index=list.findIndex(entry=>entry.id===item.id);if(index>=0)list.splice(index,1);
+        if(item.entityType==='character')list.filter(entry=>entry.entityType==='relationship').forEach(entry=>entry.details.edges=entry.details.edges.filter(edge=>edge.from!==item.title&&edge.to!==item.title));
+        state.ui.selectedAnalysis=list[0]?.id||'';render();toast('已删除并更新人物与世界分析');return;
+      }
+      if(action==='save-character-edit'){
+        const x=getAnalysis(); if(!x||x.entityType!=='character')return;
+        const previousName=x.title, nextName=document.getElementById('char-name').value.trim();
+        if(!nextName){toast('角色名或代号不能为空','error');return;}
+        x.title=nextName;
+        Object.assign(x.details,{gender:document.getElementById('char-gender').value.trim(),role:document.getElementById('char-role').value.trim(),faction:document.getElementById('char-faction').value.trim(),firstSeen:document.getElementById('char-first-seen').value.trim(),arc:document.getElementById('char-arc').value.trim(),surface:document.getElementById('char-surface').value.trim(),deep:document.getElementById('char-deep').value.trim(),contrast:document.getElementById('char-contrast').value.trim(),weakness:document.getElementById('char-weakness').value.trim(),visual:document.getElementById('char-visual').value.trim(),mergePending:false});
+        const relationship=getAnalyses().find(item=>item.entityType==='relationship');
+        if(relationship && previousName!==nextName) relationship.details.edges.forEach(edge=>{if(edge.from===previousName)edge.from=nextName;if(edge.to===previousName)edge.to=nextName;});
+        x.summary=`${x.details.role}｜${x.details.surface}`; x.status='edited'; setModal(''); render(); jumpToSection('world',`[data-id="${x.id}"]`); toast('角色档案已更新并确认'); return;
+      }
+      if(action==='save-relationship-edit'){
+        const x=getAnalysis(),input=document.getElementById('relation-edges'); if(!x||x.entityType!=='relationship'||!input)return;
+        const edges=input.value.split('\n').map(line=>line.split(/[|｜]/).map(v=>v.trim())).filter(parts=>parts.length>=3&&parts[0]&&parts[1]&&parts[2]).slice(0,20).map((parts,index)=>({from:parts[0],to:parts[1],label:parts.slice(2).join('｜'),tone:index===1||index===2?'ally':'conflict'}));
+        if(!edges.length){toast('至少保留一条有效人物关系','error');return;}
+        x.details.edges=edges; x.summary=`已核实 ${edges.length} 条关键人物关系。`; x.status='edited'; setModal(''); render(); jumpToSection('world'); toast('人物关系网已更新并确认'); return;
+      }
+      if(action==='save-faction-edit'){
+        const x=getAnalysis(); if(!x||x.entityType!=='faction')return;
+        x.title=document.getElementById('faction-name').value.trim();
+        Object.assign(x.details,{position:document.getElementById('faction-position').value.trim(),traits:document.getElementById('faction-traits').value.trim(),goal:document.getElementById('faction-goal').value.trim(),resources:document.getElementById('faction-resources').value.trim(),constraints:document.getElementById('faction-constraints').value.trim()});
+        x.summary=`${x.details.position}；目标：${x.details.goal}`; x.status='edited'; setModal(''); render(); jumpToSection('world',`[data-id="${x.id}"]`); toast('阵营档案已更新并确认'); return;
+      }
+      if(action==='save-world-element'){
+        const x=getAnalysis();if(!x||x.entityType!=='worldElement')return;
+        x.title=document.getElementById('world-title').value.trim()||'其他｜世界观要素';x.summary=document.getElementById('world-summary').value.trim()||'信息不足';x.evidence=document.getElementById('world-evidence').value.trim()||'人工补充';x.time=document.getElementById('world-time').value.trim()||'人工补充';x.status='edited';setModal('');render();jumpToSection('world',`[data-id="${x.id}"]`);toast('世界观要素已更新并确认');return;
+      }
+      if(action==='save-platform-edit'){
+        const x=getAnalysis(); if(!x||x.entityType!=='platform')return;
+        Object.assign(x.details,{source:document.getElementById('platform-source').value.trim(),note:document.getElementById('platform-note').value.trim(),fields:document.getElementById('platform-fields').value.split(/[、,，]/).map(v=>v.trim()).filter(Boolean).slice(0,8)});
+        x.summary=document.getElementById('platform-summary').value.trim(); x.status='edited'; setModal(''); render(); jumpToSection('audience',`[data-id="${x.id}"]`); toast('平台洞察已更新并确认'); return;
+      }
+      if(action==='review-discuss'){ if(el.dataset.id)state.ui.selectedAnalysis=el.dataset.id; openDiscussion(); return; }
+      if(action==='send-review-discussion'){
+        const input=document.getElementById('discussion-input'),x=getAnalysis(); if(!input.value.trim()){toast('请输入要讨论的问题','error');return;} x.discussion=x.discussion||[]; x.discussion.push({role:'user',text:input.value.trim()},{role:'ai',text:'这条结论的关键不是照搬情节，而是保留因果结构。建议把适用条件收窄为“证据能改变人物关系或权力位置”的场景，并在迁移时重新设计证据来源。'}); openDiscussion(); return;
+      }
+      if(action==='select-session'){ state.topics.selectedSession=el.dataset.id; render(); return; }
+      if(action==='new-session'){
+        const id=uid('s'); state.topics.sessions.push({id,title:'新选题方向',status:'exploring',updated:`今天 ${nowLabel()}`,archived:false,confirmed:false,messages:[{role:'ai',text:'先告诉我你想表达的时代情绪、目标观众，或一个你不愿放弃的故事画面。我会结合已确认的创意知识帮助你收敛。',citation:'已连接创意库中的人工确认知识'}],profile:{theme:'待讨论',emotion:'待讨论',audience:'待讨论',logline:'等待通过讨论形成一句话故事。',protagonist:'待讨论',conflict:'待讨论',difference:'待讨论',hooks:['待讨论','待讨论','待讨论'],risk:'需要先明确创作意图。'},references:['c1-knowledge-reuse','s1-audience-signals']}); state.topics.selectedSession=id; render(); toast('已新建选题会话'); return;
+      }
+      if(action==='cloud-prompt'){
+        const input=document.getElementById('chat-input'); if(!input)return; input.value=el.dataset.text||''; input.focus?.(); toast('已带入讨论框'); return;
+      }
+      if(action==='archive-session'){
+        const s=state.topics.sessions.find(x=>x.id===el.dataset.id); if(!s)return; s.archived=!s.archived; if(s.archived && state.topics.selectedSession===s.id){const next=activeSessions()[0]; if(next)state.topics.selectedSession=next.id;} else if(!s.archived)state.topics.selectedSession=s.id; render(); toast(s.archived?'会话已归档':'会话已恢复'); return;
+      }
+      if(action==='delete-session'){
+        if(!confirm('删除这个选题会话？此操作仅影响演示数据。'))return; state.topics.sessions=state.topics.sessions.filter(x=>x.id!==el.dataset.id); const next=activeSessions()[0]||state.topics.sessions[0]; if(next)state.topics.selectedSession=next.id; render(); toast('会话已删除'); return;
+      }
+      if(action==='quick-prompt'){ addChat(el.dataset.text); return; }
+      if(action==='send-chat'){ const input=document.getElementById('chat-input'); addChat(input.value); return; }
+      if(action==='edit-profile'){ openProfileEdit(); return; }
+      if(action==='save-profile'){
+        const s=getSession(),p=s.profile; p.theme=document.getElementById('p-theme').value.trim(); p.emotion=document.getElementById('p-emotion').value.trim(); p.audience=document.getElementById('p-audience').value.trim(); p.logline=document.getElementById('p-logline').value.trim(); p.protagonist=document.getElementById('p-protagonist').value.trim(); p.conflict=document.getElementById('p-conflict').value.trim(); p.difference=document.getElementById('p-difference').value.trim(); p.hooks=document.getElementById('p-hooks').value.split('\n').map(x=>x.trim()).filter(Boolean).slice(0,3); p.risk=document.getElementById('p-risk').value.trim(); s.status='converging'; s.updated=`今天 ${nowLabel()}`; setModal(''); render(); toast('选题侧写已更新'); return;
+      }
+      if(action==='show-references'){ showReferences(); return; }
+      if(action==='confirm-topic'){
+        const s=getSession(); if(!s)return; s.confirmed=true; s.status='confirmed'; s.updated=`今天 ${nowLabel()}`; s.messages.push({role:'ai',text:'选题已按当前侧写确认。我已保留本次讨论和引用依据；后续继续修改时，请明确指出要调整的目标。',citation:'已记录当前版本与引用关系'}); render(); toast('选题已确认并生成选题卡'); return;
+      }
+    }
+
+    function clearSeriesDragState(){
+      document.querySelectorAll('.series-group.dragging,.series-group.drag-over-before,.series-group.drag-over-after').forEach(node=>node.classList.remove('dragging','drag-over-before','drag-over-after'));
+    }
+    document.addEventListener('dragstart',e=>{
+      const handle=e.target.closest('[data-series-drag]'); if(!handle)return;
+      draggedSeriesId=handle.dataset.seriesDrag||'';
+      e.dataTransfer.effectAllowed='move';
+      e.dataTransfer.setData('text/plain',draggedSeriesId);
+      requestAnimationFrame(()=>handle.closest('.series-group')?.classList.add('dragging'));
+    });
+    document.addEventListener('dragover',e=>{
+      const group=e.target.closest('.series-group[data-series-id]');
+      if(!draggedSeriesId||!group||group.dataset.seriesId===draggedSeriesId)return;
+      e.preventDefault();
+      const after=e.clientY>group.getBoundingClientRect().top+group.getBoundingClientRect().height/2;
+      group.classList.toggle('drag-over-before',!after);
+      group.classList.toggle('drag-over-after',after);
+    });
+    document.addEventListener('dragleave',e=>{
+      const group=e.target.closest('.series-group[data-series-id]');
+      if(group&&!group.contains(e.relatedTarget))group.classList.remove('drag-over-before','drag-over-after');
+    });
+    document.addEventListener('drop',e=>{
+      const group=e.target.closest('.series-group[data-series-id]');
+      if(!draggedSeriesId||!group)return;
+      e.preventDefault();
+      const sourceId=draggedSeriesId,targetId=group.dataset.seriesId;
+      const after=e.clientY>group.getBoundingClientRect().top+group.getBoundingClientRect().height/2;
+      draggedSeriesId=''; clearSeriesDragState(); reorderSeries(sourceId,targetId,after);
+    });
+    document.addEventListener('dragend',()=>{draggedSeriesId='';clearSeriesDragState();});
+    document.addEventListener('pointerup',e=>{
+      const list=e.target.closest('.video-children[data-series-id]'); if(!list)return;
+      const height=Math.max(104,Math.min(380,Math.round(list.getBoundingClientRect().height)));
+      state.creative.seriesHeights[list.dataset.seriesId]=height;
+      list.style.height=`${height}px`;
+      persist();
+    });
+    document.addEventListener('input',e=>{
+      if(e.target.id!=='series-manager-search')return;
+      const keyword=e.target.value.trim().toLowerCase();
+      document.querySelectorAll('#series-manager-list [data-series-search]').forEach(row=>row.classList.toggle('hidden',keyword&&!row.dataset.seriesSearch.includes(keyword)));
+    });
+    document.addEventListener('click',e=>{
+      if(e.target.classList.contains('modal-backdrop')){ e.preventDefault(); setModal(''); return; }
+      const el=e.target.closest('[data-action]');
+      if(!el)return;
+      e.preventDefault();
+      e.stopPropagation();
+      dispatch(el.dataset.action,el);
+    });
+    document.addEventListener('change',e=>{
+      if(e.target.id==='upload-video'){ const node=document.getElementById('video-name'); if(node) node.textContent=e.target.files[0]?.name||'尚未选择'; }
+      if(e.target.id==='upload-series-select'){
+        document.getElementById('upload-new-series-field')?.classList.toggle('hidden',e.target.value!=='__new__');
+      }
+      if(e.target.id==='video-series-select'){
+        document.getElementById('video-new-series-field')?.classList.toggle('hidden',e.target.value!=='__new__');
+      }
+      if(e.target.id==='series-select'){
+        state.creative.selectedSeries=e.target.value;
+        const first=state.creative.contents.find(x=>x.seriesId===e.target.value); if(first)state.ui.selectedContent=first.id;
+        state.ui.analysisTab=state.creative.scope==='series'?'positioning':'responsibility'; const list=getAnalyses(); state.ui.selectedAnalysis=(list[0]||{}).id||''; render();
+      }
+      if(e.target.id==='video-select'){
+        state.ui.selectedContent=e.target.value; state.creative.scope='video'; state.ui.analysisTab='responsibility'; const list=getAnalyses(); state.ui.selectedAnalysis=(list[0]||{}).id||''; render();
+      }
+    });
+    document.addEventListener('keydown',e=>{
+      if(e.key==='Enter' && (e.metaKey||e.ctrlKey) && e.target.id==='chat-input'){ e.preventDefault(); addChat(e.target.value); }
+      if(e.key==='Escape') setModal('');
+    });
+    hydrateIcons(); render(); loadServerConfig(); resumePendingJobs();
+    if(location.protocol==='file:') setTimeout(()=>toast('真实解析需通过本地服务地址打开页面','error'),300);
+  })();
+  </script>
+</body>
+</html>
